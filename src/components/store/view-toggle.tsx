@@ -30,8 +30,7 @@ const VIEW_STYLES: Record<
 };
 
 export function ViewToggle({ value, onChange }: ViewToggleProps) {
-  const shellBorder =
-    value === 'ALL' ? 'border-black/15' : VIEW_STYLES[value].border;
+  const shellBorder = value === 'ALL' ? 'border-black/15' : VIEW_STYLES[value].border;
 
   return (
     <div className="px-2 pb-0.5 pt-1">

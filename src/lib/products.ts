@@ -11,9 +11,11 @@ export const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export const VIEWS = ['ALL', 'WOMEN', 'KIDS', 'MEN'] as const;
+export const AUDIENCE_VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
 
 export type ProductCategory = string;
 export type ProductView = (typeof VIEWS)[number];
+export type AudienceView = (typeof AUDIENCE_VIEWS)[number];
 export type LeafCategory = string;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
