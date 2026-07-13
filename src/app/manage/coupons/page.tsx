@@ -1,4 +1,4 @@
-import { createCoupon, deleteCoupon, updateCoupon } from "@/app/admin/actions/coupons";
+import { createCoupon, deleteCoupon, updateCoupon } from "@/app/manage/actions/coupons";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

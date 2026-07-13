@@ -7,8 +7,8 @@ export default withAuth({
   callbacks: {
     authorized: ({ token, req }) => {
       const path = req.nextUrl.pathname;
-      if (path.startsWith('/manage/login')) return true;
-      if (path.startsWith('/manage')) {
+      if (path === '/manage/login' || path.startsWith('/manage/login/')) return true;
+      if (path === '/manage' || path.startsWith('/manage/')) {
         return token?.role === 'ADMIN';
       }
       return true;
@@ -17,5 +17,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ['/manage/:path*'],
+  matcher: ['/manage', '/manage/:path*'],
 };

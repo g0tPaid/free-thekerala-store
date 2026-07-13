@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateOrderStatus } from "@/app/admin/actions/orders";
+import { updateOrderStatus } from "@/app/manage/actions/orders";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

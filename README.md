@@ -13,7 +13,12 @@ pnpm exec prisma db seed
 pnpm dev
 ```
 
-App: http://localhost:3003 · Admin: http://localhost:3003/admin
+App: http://localhost:3003 · Admin: http://localhost:3003/manage/login
+
+Production admin (use Railway URL while thekerala.store still points at Shopify):
+https://free-thekerala-store-production.up.railway.app/manage/login
+
+Set `NEXTAUTH_URL` to that Railway origin until the custom domain DNS is fully on Railway.
 
 ## Railway (same pattern as rep.markets)
 

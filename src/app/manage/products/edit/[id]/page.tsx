@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateProduct } from "@/app/admin/actions/products";
-import { ProductForm } from "@/app/admin/products/product-form";
+import { updateProduct } from "@/app/manage/actions/products";
+import { ProductForm } from "@/app/manage/products/product-form";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

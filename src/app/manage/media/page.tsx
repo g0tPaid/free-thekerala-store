@@ -1,4 +1,4 @@
-import { createMediaAsset, deleteMediaAsset } from "@/app/admin/actions/media";
+import { createMediaAsset, deleteMediaAsset } from "@/app/manage/actions/media";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

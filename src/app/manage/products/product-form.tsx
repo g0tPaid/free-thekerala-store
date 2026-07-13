@@ -9,7 +9,7 @@ import {
   useTransition,
   type FormEvent,
 } from 'react';
-import type { ProductActionState } from '@/app/admin/actions/products';
+import type { ProductActionState } from '@/app/manage/actions/products';
 import {
   createGalleryItem,
   ProductImageGallery,

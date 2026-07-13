@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { createProduct } from "@/app/admin/actions/products";
-import { ProductForm } from "@/app/admin/products/product-form";
+import { createProduct } from "@/app/manage/actions/products";
+import { ProductForm } from "@/app/manage/products/product-form";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

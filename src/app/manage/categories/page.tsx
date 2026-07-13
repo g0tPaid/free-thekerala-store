@@ -2,7 +2,7 @@ import {
   createCategory,
   deleteCategory,
   updateCategory,
-} from "@/app/admin/actions/categories";
+} from "@/app/manage/actions/categories";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

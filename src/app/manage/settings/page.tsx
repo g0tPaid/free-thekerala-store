@@ -1,4 +1,4 @@
-import { updateSettings } from "@/app/admin/actions/settings";
+import { updateSettings } from "@/app/manage/actions/settings";
 import { BannerSlotField } from "@/components/admin/banner-slot-field";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";

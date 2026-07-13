@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { deleteProduct, toggleFeaturedProduct } from "@/app/admin/actions/products";
+import { deleteProduct, toggleFeaturedProduct } from "@/app/manage/actions/products";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 

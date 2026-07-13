@@ -19,9 +19,6 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // Shopify steals /admin on connected domains — public admin lives at /manage
-      { source: '/manage', destination: '/admin' },
-      { source: '/manage/:path*', destination: '/admin/:path*' },
       // Legacy /uploads/... paths → dynamic media API (volume-backed)
       { source: '/uploads/:path*', destination: '/api/media/:path*' },
     ];
