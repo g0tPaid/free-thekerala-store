@@ -118,7 +118,7 @@ export function CartDrawer() {
               <Link
                 href="/checkout"
                 onClick={close}
-                className="block bg-black px-5 py-4 text-center text-[11px] font-semibold tracking-[0.22em] text-white"
+                className="block bg-[#4f8f6e] px-5 py-4 text-center text-[11px] font-semibold tracking-[0.22em] text-white"
               >
                 CHECKOUT
               </Link>

@@ -111,9 +111,9 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
               quantity,
             })
           }
-          className="w-full bg-[#4f8f6e] px-5 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf8f3] disabled:opacity-50"
+          className="w-full bg-[#4f8f6e] px-5 py-4 text-[11px] font-semibold tracking-[0.22em] text-white disabled:opacity-50"
         >
-          ADD TO CART · {formatPrice(unitPrice)}
+          BUY NOW · {formatPrice(unitPrice)}
         </button>
         <a
           href={whatsappUrl(`Hi, I have a question about ${product.name} on ${BRAND.domain}`)}
