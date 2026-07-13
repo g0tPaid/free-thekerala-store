@@ -36,8 +36,59 @@ const AUDIENCE_PARENTS = [
   { name: "MEN", slug: "men", sortOrder: 2, description: "💙 ഓന്" },
 ] as const;
 
+/** Rename legacy slug → audience slug, or merge children into existing audience parent. */
+async function migrateLegacyParent(legacySlug: string, targetSlug: string) {
+  const legacy = await prisma.category.findUnique({ where: { slug: legacySlug } });
+  if (!legacy) return;
+
+  const target = await prisma.category.findUnique({ where: { slug: targetSlug } });
+  const audience = AUDIENCE_PARENTS.find((item) => item.slug === targetSlug);
+  if (!audience) return;
+
+  if (!target) {
+    await prisma.category.update({
+      where: { id: legacy.id },
+      data: {
+        name: audience.name,
+        slug: audience.slug,
+        description: audience.description,
+        sortOrder: audience.sortOrder,
+        isVisible: true,
+        parentId: null,
+      },
+    });
+    return;
+  }
+
+  if (legacy.id === target.id) return;
+
+  await prisma.category.updateMany({
+    where: { parentId: legacy.id },
+    data: { parentId: target.id },
+  });
+
+  await prisma.product.updateMany({
+    where: { categoryId: legacy.id },
+    data: { categoryId: target.id },
+  });
+
+  await prisma.category.update({
+    where: { id: legacy.id },
+    data: {
+      isVisible: false,
+      parentId: null,
+      name: `LEGACY ${legacy.name}`,
+      slug: `legacy-${legacy.slug}-${legacy.id.slice(-4)}`,
+    },
+  });
+}
+
 export async function ensureAudienceParents() {
   await requireAdmin();
+
+  // Convert renamed SHOP/GIFTS rows (slug still shop/gifts) into women/men
+  await migrateLegacyParent("shop", "women");
+  await migrateLegacyParent("gifts", "men");
 
   for (const parent of AUDIENCE_PARENTS) {
     await prisma.category.upsert({
@@ -59,15 +110,6 @@ export async function ensureAudienceParents() {
       },
     });
   }
-
-  // Hide legacy top-level SHOP / GIFTS so they stop confusing the toggles
-  await prisma.category.updateMany({
-    where: {
-      parentId: null,
-      slug: { in: ["shop", "gifts"] },
-    },
-    data: { isVisible: false },
-  });
 
   bustCategoryCache();
 }

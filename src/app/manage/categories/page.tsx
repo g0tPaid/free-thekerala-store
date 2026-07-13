@@ -10,12 +10,28 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 const AUDIENCE_SLUGS = new Set(["women", "kids", "men"]);
+const AUDIENCE_NAMES = new Set(["WOMEN", "KIDS", "MEN"]);
 
 const AUDIENCE_LABELS: Record<string, string> = {
   women: "🌸 ഓൾക്ക് · WOMEN",
   kids: "🧒 കുട്ട്യേൾക്ക് · KIDS",
   men: "💙 ഓന് · MEN",
 };
+
+function isAudienceParent(category: { slug: string; name: string; parentId: string | null }) {
+  if (category.parentId) return false;
+  if (AUDIENCE_SLUGS.has(category.slug)) return true;
+  return AUDIENCE_NAMES.has(category.name.trim().toUpperCase());
+}
+
+function audienceLabel(category: { slug: string; name: string }) {
+  if (AUDIENCE_LABELS[category.slug]) return AUDIENCE_LABELS[category.slug];
+  const key = category.name.trim().toUpperCase();
+  if (key === "WOMEN") return AUDIENCE_LABELS.women;
+  if (key === "KIDS") return AUDIENCE_LABELS.kids;
+  if (key === "MEN") return AUDIENCE_LABELS.men;
+  return category.name;
+}
 
 export default async function AdminCategoriesPage() {
   await requireAdmin();
@@ -33,11 +49,11 @@ export default async function AdminCategoriesPage() {
   });
 
   const audienceParents = categories
-    .filter((category) => !category.parentId && AUDIENCE_SLUGS.has(category.slug))
+    .filter((category) => isAudienceParent(category))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const otherTopLevel = categories.filter(
-    (category) => !category.parentId && !AUDIENCE_SLUGS.has(category.slug),
+    (category) => !category.parentId && !isAudienceParent(category),
   );
 
   return (
@@ -58,7 +74,7 @@ export default async function AdminCategoriesPage() {
             type="submit"
             className="bg-[#4f8f6e] px-4 py-2.5 text-sm font-semibold tracking-[0.08em] text-white"
           >
-            Setup WOMEN / KIDS / MEN parents
+            Setup / fix WOMEN · KIDS · MEN parents
           </button>
         </form>
       </div>
@@ -80,7 +96,7 @@ export default async function AdminCategoriesPage() {
             </option>
             {audienceParents.map((parent) => (
               <option key={parent.id} value={parent.id}>
-                {AUDIENCE_LABELS[parent.slug] ?? parent.name}
+                {audienceLabel(parent)}
               </option>
             ))}
           </select>
@@ -122,7 +138,7 @@ export default async function AdminCategoriesPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 pb-3">
             <div>
               <h2 className="text-xl font-semibold">
-                {AUDIENCE_LABELS[parent.slug] ?? parent.name}
+                {audienceLabel(parent)}
               </h2>
               <p className="mt-1 text-xs text-black/50">
                 Parent · slug `{parent.slug}` · {parent.children.length} child categories
@@ -167,7 +183,7 @@ export default async function AdminCategoriesPage() {
               >
                 {audienceParents.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {AUDIENCE_LABELS[item.slug] ?? item.name}
+                    {audienceLabel(item)}
                   </option>
                 ))}
               </select>
@@ -240,7 +256,7 @@ export default async function AdminCategoriesPage() {
                 <option value="">Keep as top-level</option>
                 {audienceParents.map((parent) => (
                   <option key={parent.id} value={parent.id}>
-                    Move under {AUDIENCE_LABELS[parent.slug] ?? parent.name}
+                    Move under {audienceLabel(parent)}
                   </option>
                 ))}
               </select>
