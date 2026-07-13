@@ -93,14 +93,6 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
           Can&apos;t find what you need?
         </p>
         <p className="font-ml text-center text-sm text-muted">തിരയുന്നത് കണ്ടെത്തിയില്ലേ?</p>
-        <a
-          href={whatsappUrl(`Hi, I can't find what I'm looking for on ${BRAND.domain}`)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 flex w-full items-center justify-center border border-[#25D366] bg-[#25D366] px-5 py-4 text-center text-[11px] font-semibold tracking-[0.14em] text-white"
-        >
-          WhatsApp us · വാട്ട്‌സ്ആപ്പ്
-        </a>
         <p className="mx-auto mt-4 max-w-[340px] border border-[#4f8f6e]/10 bg-white/80 px-4 py-2.5 text-center text-[11px] leading-5 text-muted">
           Hidden coupon codes on the site — find one, message us, and unlock up to{' '}
           <span className="font-semibold text-[#3d6b58]">50% off</span> or{' '}
