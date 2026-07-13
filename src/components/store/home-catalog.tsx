@@ -61,10 +61,10 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   return (
     <main className="min-h-screen">
       <Header />
+      <OffersBanner />
       <HeroBanners banners={banners} />
       <ViewToggle value={view} onChange={changeView} />
       <CategoryNav categories={availableCategories} value={category} onChange={changeCategory} />
-      <OffersBanner />
       <SearchOverlay products={filterProducts(catalog, 'ALL', view)} />
       <ProductGrid products={products} />
       {filtered.length ? (
@@ -79,7 +79,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
             </button>
           ) : (
             <p className="w-full border border-hairline px-5 py-4 text-center font-ml text-[12px] font-semibold tracking-[0.08em] text-muted">
-              ഇതിനൊരു അവസാനം ഉള്ളേ ..അക്ഷയപാത്രം മാതിരി ആണ്
+              അടീക്ക് ഇനിയും scroll
             </p>
           )}
         </div>
