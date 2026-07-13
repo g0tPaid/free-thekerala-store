@@ -2,10 +2,10 @@ import {
   createCategory,
   deleteCategory,
   ensureAudienceParents,
-  syncAudienceParents,
   updateCategory,
 } from "@/app/manage/actions/categories";
 import { requireAdmin } from "@/lib/auth";
+import { syncAudienceParents } from "@/lib/audience-parents";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
