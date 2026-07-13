@@ -12,6 +12,7 @@ const navItems = [
   { href: "/manage/customers", label: "Customers" },
   { href: "/manage/coupons", label: "Coupons" },
   { href: "/manage/media", label: "Media" },
+  { href: "/manage/settings#banners", label: "Banners" },
   { href: "/manage/settings", label: "Settings" },
 ];
 

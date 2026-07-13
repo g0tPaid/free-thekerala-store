@@ -58,4 +58,5 @@ export async function updateSettings(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/manage/settings");
+  revalidatePath("/manage/settings#banners");
 }
