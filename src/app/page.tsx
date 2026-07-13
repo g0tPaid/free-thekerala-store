@@ -7,14 +7,15 @@ import { mockProducts, type StoreProduct } from '@/lib/products';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  let products: StoreProduct[] = mockProducts;
+  // Empty until DB responds — never keep mock samples when catalog is intentionally empty
+  let products: StoreProduct[] = [];
   let banners = pickRandomBanners(3);
 
   try {
-    const live = await getActiveProducts();
-    if (live.length) products = live;
+    products = await getActiveProducts();
   } catch (error) {
     console.warn('Catalog unavailable — using sample products', error);
+    products = mockProducts;
   }
 
   try {
