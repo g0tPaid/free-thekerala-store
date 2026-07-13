@@ -30,7 +30,7 @@ function bustCategoryCache() {
   revalidatePath("/manage/products");
 }
 
-export const AUDIENCE_PARENTS = [
+const AUDIENCE_PARENTS = [
   { name: "WOMEN", slug: "women", sortOrder: 0, description: "🌸 ഓൾക്ക്" },
   { name: "KIDS", slug: "kids", sortOrder: 1, description: "🧒 കുട്ട്യേൾക്ക്" },
   { name: "MEN", slug: "men", sortOrder: 2, description: "💙 ഓന്" },
