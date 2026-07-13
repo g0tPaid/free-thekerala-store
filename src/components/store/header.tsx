@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 import { BrandLogo } from '@/components/store/brand-logo';
 import { useCart } from '@/lib/store';
 
+const navLabelClass =
+  'text-[10px] font-bold tracking-[0.18em] text-[#2f5a48]';
+
 export function Header() {
   const open = useCart((state) => state.open);
   const count = useCart((state) => state.count());
@@ -19,16 +22,13 @@ export function Header() {
       <button
         type="button"
         onClick={open}
-        className="text-left text-[10px] font-bold tracking-[0.18em] text-[#2f5a48]"
+        className={`text-left ${navLabelClass}`}
         aria-label="Open cart"
       >
         CART ({mounted ? count : 0})
       </button>
       <BrandLogo size="sm" showMalayalam={false} className="py-0.5" />
-      <Link
-        href="/checkout"
-        className="text-right text-[10px] font-bold tracking-[0.18em] text-[#2f5a48]"
-      >
+      <Link href="/checkout" className={`text-right ${navLabelClass}`}>
         CHECKOUT
       </Link>
     </header>
