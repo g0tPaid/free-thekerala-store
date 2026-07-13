@@ -27,7 +27,7 @@ export function Header() {
       <BrandLogo size="sm" showMalayalam={false} className="py-0.5" />
       <Link
         href="/checkout"
-        className="text-right text-[13px] font-bold tracking-[0.16em] text-[#2f5a48]"
+        className="text-right text-[10px] font-bold tracking-[0.18em] text-[#2f5a48]"
       >
         CHECKOUT
       </Link>
