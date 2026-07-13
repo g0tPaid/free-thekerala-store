@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" role="img" aria-hidden="true">
+  <!-- Outer gold ring -->
+  <circle cx="48" cy="48" r="45.5" stroke="#C9A86C" stroke-width="1.25"/>
+  <circle cx="48" cy="48" r="41" fill="#1D4D3E"/>
+  <circle cx="48" cy="48" r="38.5" stroke="#C9A86C" stroke-width="0.75" opacity="0.55"/>
+
+  <!-- Soft inner glow disk -->
+  <circle cx="48" cy="52" r="22" fill="#163d31"/>
+
+  <!-- Coconut palm crown  layered fronds -->
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <!-- Back fronds -->
+    <path d="M48 54 C40 42 28 34 18 30" stroke="#C9A86C" stroke-width="1.1" opacity="0.55"/>
+    <path d="M48 54 C56 42 68 34 78 30" stroke="#C9A86C" stroke-width="1.1" opacity="0.55"/>
+    <path d="M48 54 C34 40 24 28 22 18" stroke="#E8D5A8" stroke-width="1.35"/>
+    <path d="M48 54 C62 40 72 28 74 18" stroke="#E8D5A8" stroke-width="1.35"/>
+
+    <!-- Mid fronds -->
+    <path d="M48 54 C36 44 26 40 16 42" stroke="#FAF8F3" stroke-width="1.6"/>
+    <path d="M48 54 C60 44 70 40 80 42" stroke="#FAF8F3" stroke-width="1.6"/>
+    <path d="M48 54 C38 36 34 24 36 14" stroke="#FAF8F3" stroke-width="1.7"/>
+    <path d="M48 54 C58 36 62 24 60 14" stroke="#FAF8F3" stroke-width="1.7"/>
+
+    <!-- Center upright frond -->
+    <path d="M48 56 C47 40 48 26 48 12" stroke="#FAF8F3" stroke-width="2"/>
+    <path d="M48 28 C42 24 38 20 36 16" stroke="#C9A86C" stroke-width="1.1"/>
+    <path d="M48 28 C54 24 58 20 60 16" stroke="#C9A86C" stroke-width="1.1"/>
+    <path d="M48 40 C40 36 34 34 28 34" stroke="#C9A86C" stroke-width="1"/>
+    <path d="M48 40 C56 36 62 34 68 34" stroke="#C9A86C" stroke-width="1"/>
+  </g>
+
+  <!-- Trunk -->
+  <path d="M48 56 C47.2 66 46.5 72 48 78" stroke="#E8D5A8" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M48 62 C50 68 52 72 54 76" stroke="#C9A86C" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Coconuts -->
+  <circle cx="44.5" cy="55.5" r="2.4" fill="#C9A86C"/>
+  <circle cx="51.5" cy="55" r="2.1" fill="#E8D5A8"/>
+  <circle cx="48" cy="58.5" r="1.8" fill="#C9A86C"/>
+
+  <!-- Ground crescent -->
+  <path d="M34 78 C40 82 56 82 62 78" stroke="#C9A86C" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 88" fill="none" role="img" aria-label="The Kerala Store">
+  <!-- Mark -->
+  <g transform="translate(0,4)">
+    <circle cx="40" cy="40" r="38" stroke="#C9A86C" stroke-width="1.1"/>
+    <circle cx="40" cy="40" r="34.5" fill="#1D4D3E"/>
+    <circle cx="40" cy="40" r="32.5" stroke="#C9A86C" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="40" cy="43" r="18" fill="#163d31"/>
+    <g stroke-linecap="round" stroke-linejoin="round">
+      <path d="M40 46 C33 36 24 30 16 27" stroke="#C9A86C" stroke-width="0.9" opacity="0.55"/>
+      <path d="M40 46 C47 36 56 30 64 27" stroke="#C9A86C" stroke-width="0.9" opacity="0.55"/>
+      <path d="M40 46 C29 35 21 25 20 17" stroke="#E8D5A8" stroke-width="1.15"/>
+      <path d="M40 46 C51 35 59 25 60 17" stroke="#E8D5A8" stroke-width="1.15"/>
+      <path d="M40 46 C30 38 22 35 14 36" stroke="#FAF8F3" stroke-width="1.35"/>
+      <path d="M40 46 C50 38 58 35 66 36" stroke="#FAF8F3" stroke-width="1.35"/>
+      <path d="M40 46 C32 32 29 22 31 14" stroke="#FAF8F3" stroke-width="1.4"/>
+      <path d="M40 46 C48 32 51 22 49 14" stroke="#FAF8F3" stroke-width="1.4"/>
+      <path d="M40 48 C39.3 34 40 22 40 12" stroke="#FAF8F3" stroke-width="1.7"/>
+      <path d="M40 48 C39.4 56 39 61 40 66" stroke="#E8D5A8" stroke-width="1.8"/>
+    </g>
+    <circle cx="37" cy="46.5" r="2" fill="#C9A86C"/>
+    <circle cx="43" cy="46" r="1.7" fill="#E8D5A8"/>
+    <path d="M28 66 C33 69 47 69 52 66" stroke="#C9A86C" stroke-width="1" stroke-linecap="round"/>
+  </g>
+  <!-- Decorative rules (wordmark rendered in CSS for crisp script fonts) -->
+  <path d="M96 28 H300" stroke="#C9A86C" stroke-width="0.75" opacity="0.7"/>
+  <path d="M96 60 H300" stroke="#C9A86C" stroke-width="0.75" opacity="0.7"/>
+</svg>

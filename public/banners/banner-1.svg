@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-label="Banner 1">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4d3e"/>
+      <stop offset="55%" stop-color="#2a6b54"/>
+      <stop offset="100%" stop-color="#c9a86c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#g1)"/>
+  <circle cx="980" cy="80" r="160" fill="#faf8f3" opacity="0.08"/>
+  <circle cx="1080" cy="360" r="120" fill="#faf8f3" opacity="0.06"/>
+  <text x="72" y="210" fill="#faf8f3" font-family="Georgia, serif" font-size="64" font-weight="600">Kerala essentials</text>
+  <text x="72" y="270" fill="#e8d5a8" font-family="Georgia, serif" font-size="28">Craft, spice &amp; everyday beauty</text>
+  <text x="72" y="330" fill="#faf8f3" font-family="Noto Serif Malayalam, Georgia, serif" font-size="22" opacity="0.9">G03$M$?(M1F .(K9>0?$</text>
+</svg>
