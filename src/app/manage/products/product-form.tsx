@@ -60,14 +60,37 @@ type ProductFormProps = {
 const statuses = ['DRAFT', 'ACTIVE', 'ARCHIVED', 'HIDDEN'];
 const IMAGE_SLOTS = 15;
 const CLOTHES_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL', 'XXXXXL'] as const;
+const KIDS_YEAR_SIZES = [
+  '1 year',
+  '2 year',
+  '3 year',
+  '4 year',
+  '5 year',
+  '6 year',
+  '7 year',
+  '8 year',
+  '9 year',
+  '10 year',
+  '11 year',
+  '12 year',
+] as const;
 const SHOE_EU = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'] as const;
 const SHOE_UK = ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] as const;
 const SHOE_US = ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13'] as const;
 
-type SizeMode = 'clothes' | 'shoes' | 'custom' | 'none';
+type SizeMode = 'clothes' | 'kids' | 'shoes' | 'custom' | 'none';
 
 function fieldValue(value: unknown) {
   return value === null || value === undefined ? '' : String(value);
+}
+
+function normalizeKidsYearLabel(size: string) {
+  const trimmed = size.trim().toLowerCase();
+  const match = trimmed.match(/^(\d{1,2})\s*(year|years|yr|yrs|y)$/);
+  if (!match) return null;
+  const age = Number(match[1]);
+  if (age < 1 || age > 12) return null;
+  return `${age} year`;
 }
 
 function guessSizeMode(sizes: string[]): SizeMode {
@@ -76,6 +99,11 @@ function guessSizeMode(sizes: string[]): SizeMode {
   const joined = sizes.join(' ').toUpperCase();
   if (joined.includes('EU ') || joined.includes('UK ') || joined.includes('US ')) {
     return 'shoes';
+  }
+
+  const kidsNormalized = sizes.map((size) => normalizeKidsYearLabel(size));
+  if (kidsNormalized.length && kidsNormalized.every(Boolean)) {
+    return 'kids';
   }
 
   const normalized = sizes.map((size) => size.trim().toUpperCase());
@@ -95,6 +123,12 @@ function parseSelectedSizes(sizes: string[], mode: SizeMode) {
     return sizes
       .map((size) => size.trim().toUpperCase())
       .filter((size) => clothesSet.has(size));
+  }
+  if (mode === 'kids') {
+    const kidsSet = new Set<string>(KIDS_YEAR_SIZES);
+    return sizes
+      .map((size) => normalizeKidsYearLabel(size))
+      .filter((size): size is string => Boolean(size) && kidsSet.has(size));
   }
 
   const selected = new Set(sizes.map((size) => size.trim().toUpperCase()));
@@ -244,6 +278,9 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
   const [clothesSizes, setClothesSizes] = useState<string[]>(
     Array.isArray(initialParsed) && initialMode === 'clothes' ? initialParsed : [],
   );
+  const [kidsSizes, setKidsSizes] = useState<string[]>(
+    Array.isArray(initialParsed) && initialMode === 'kids' ? initialParsed : [],
+  );
   const [shoeEu, setShoeEu] = useState<string[]>(
     !Array.isArray(initialParsed) ? initialParsed.eu : [],
   );
@@ -275,7 +312,9 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
         ? parseCustomSizes(customSizesText)
         : sizeMode === 'clothes'
           ? clothesSizes
-          : [...shoeEu, ...shoeUk, ...shoeUs];
+          : sizeMode === 'kids'
+            ? kidsSizes
+            : [...shoeEu, ...shoeUk, ...shoeUs];
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -559,6 +598,7 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
             {(
               [
                 { id: 'clothes', label: 'CLOTHES' },
+                { id: 'kids', label: 'KIDS (1–12 YR)' },
                 { id: 'shoes', label: 'SHOES' },
                 { id: 'custom', label: 'CUSTOM' },
                 { id: 'none', label: 'NO SIZE' },
@@ -586,6 +626,19 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
                   label={size}
                   selected={clothesSizes.includes(size)}
                   onClick={() => setClothesSizes((current) => toggleValue(current, size))}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {sizeMode === 'kids' ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {KIDS_YEAR_SIZES.map((size) => (
+                <SizeChip
+                  key={size}
+                  label={size}
+                  selected={kidsSizes.includes(size)}
+                  onClick={() => setKidsSizes((current) => toggleValue(current, size))}
                 />
               ))}
             </div>
