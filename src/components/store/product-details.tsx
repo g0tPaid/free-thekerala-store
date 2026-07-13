@@ -46,10 +46,10 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
       <section className="px-4 py-7">
         <p className="mb-5 text-[11px] font-semibold tracking-[0.18em] text-muted">
           {product.line === 'KIDS'
-            ? 'KIDS · കുട്ടികൾ'
+            ? '🧒 കുട്ട്യേൾക്ക്'
             : product.line === 'MEN'
-              ? 'MEN · പുരുഷന്മാർ'
-              : 'WOMEN · സ്ത്രീകൾ'}{' '}
+              ? '💙 ഓന്'
+              : '🌸 ഓൾക്ക്'}{' '}
           · {CATEGORY_LABELS[product.category]}
         </p>
         <h1 className="font-serif text-5xl leading-[0.92] tracking-[-0.06em] text-[#3d6b58]">

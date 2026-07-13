@@ -18,9 +18,9 @@ export type LeafCategory = Exclude<ProductCategory, 'ALL'>;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
 export const VIEW_LABELS: Record<ProductView, string> = {
-  WOMEN: 'WOMEN · സ്ത്രീകൾ',
-  KIDS: 'KIDS · കുട്ടികൾ',
-  MEN: 'MEN · പുരുഷന്മാർ',
+  WOMEN: '🌸 ഓൾക്ക്',
+  KIDS: '🧒 കുട്ട്യേൾക്ക്',
+  MEN: '💙 ഓന്',
 };
 
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
