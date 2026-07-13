@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
+import { CATALOG_CACHE_TAG } from "@/lib/catalog";
 import { prisma } from "@/lib/prisma";
 
 function value(formData: FormData, key: string) {
@@ -22,6 +23,55 @@ function slugify(input: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function bustCategoryCache() {
+  revalidateTag(CATALOG_CACHE_TAG);
+  revalidatePath("/");
+  revalidatePath("/manage/categories");
+  revalidatePath("/manage/products");
+}
+
+const AUDIENCE_PARENTS = [
+  { name: "WOMEN", slug: "women", sortOrder: 0, description: "🌸 ഓൾക്ക്" },
+  { name: "KIDS", slug: "kids", sortOrder: 1, description: "🧒 കുട്ട്യേൾക്ക്" },
+  { name: "MEN", slug: "men", sortOrder: 2, description: "💙 ഓന്" },
+] as const;
+
+export async function ensureAudienceParents() {
+  await requireAdmin();
+
+  for (const parent of AUDIENCE_PARENTS) {
+    await prisma.category.upsert({
+      where: { slug: parent.slug },
+      update: {
+        name: parent.name,
+        description: parent.description,
+        sortOrder: parent.sortOrder,
+        isVisible: true,
+        parentId: null,
+      },
+      create: {
+        name: parent.name,
+        slug: parent.slug,
+        description: parent.description,
+        sortOrder: parent.sortOrder,
+        isVisible: true,
+        parentId: null,
+      },
+    });
+  }
+
+  // Hide legacy top-level SHOP / GIFTS so they stop confusing the toggles
+  await prisma.category.updateMany({
+    where: {
+      parentId: null,
+      slug: { in: ["shop", "gifts"] },
+    },
+    data: { isVisible: false },
+  });
+
+  bustCategoryCache();
+}
+
 export async function createCategory(formData: FormData) {
   await requireAdmin();
   const name = value(formData, "name");
@@ -39,7 +89,7 @@ export async function createCategory(formData: FormData) {
     },
   });
 
-  revalidatePath("/manage/categories");
+  bustCategoryCache();
 }
 
 export async function updateCategory(id: string, formData: FormData) {
@@ -60,7 +110,7 @@ export async function updateCategory(id: string, formData: FormData) {
     },
   });
 
-  revalidatePath("/manage/categories");
+  bustCategoryCache();
 }
 
 export async function deleteCategory(id: string) {
@@ -69,5 +119,5 @@ export async function deleteCategory(id: string) {
     where: { id },
   });
 
-  revalidatePath("/manage/categories");
+  bustCategoryCache();
 }
