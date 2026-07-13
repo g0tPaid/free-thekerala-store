@@ -36,10 +36,6 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     sizes: Array.isArray(product.sizes) ? (product.sizes as string[]) : [],
     colors: Array.isArray(product.colors) ? (product.colors as string[]) : [],
     tags: Array.isArray(product.tags) ? (product.tags as string[]) : [],
-    qualityPrices:
-      product.qualityPrices && typeof product.qualityPrices === "object" && !Array.isArray(product.qualityPrices)
-        ? (product.qualityPrices as Record<string, number | null>)
-        : {},
     weight: product.weight ?? null,
     media: product.media.map((item) => ({
       url: item.url,

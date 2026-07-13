@@ -15,7 +15,6 @@ import {
   ProductImageGallery,
   type GalleryItem,
 } from '@/components/admin/product-image-gallery';
-import { QUALITY_OPTIONS } from '@/lib/products';
 import { cn } from '@/lib/utils';
 
 type CategoryOption = {
@@ -32,7 +31,6 @@ type ProductForForm = {
   brand: string | null;
   price: unknown;
   salePrice: unknown | null;
-  qualityPrices?: Partial<Record<string, number | null>> | null;
   sku: string | null;
   stock: number;
   sizes: string[];
@@ -538,32 +536,6 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
             defaultValue={fieldValue(product?.salePrice)}
             className="mt-2 w-full border border-black/15 px-3 py-2 outline-none focus:border-black"
           />
-        </div>
-
-        <div className="md:col-span-3">
-          <p className="text-sm font-medium">Quality prices</p>
-          <p className="mt-1 text-xs text-black/50">
-            Leave blank to use automatic markup from the base price. Fill any tier to override.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {QUALITY_OPTIONS.map((option) => (
-              <div key={option.id}>
-                <label className="block text-xs font-medium text-black/70" htmlFor={`qualityPrice${option.id}`}>
-                  {option.label}
-                </label>
-                <input
-                  id={`qualityPrice${option.id}`}
-                  name={`qualityPrice${option.id}`}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder={option.multiplier === 1 ? 'Same as base' : `~${option.multiplier}x base`}
-                  defaultValue={fieldValue(product?.qualityPrices?.[option.id])}
-                  className="mt-2 w-full border border-black/15 px-3 py-2 outline-none focus:border-black"
-                />
-              </div>
-            ))}
-          </div>
         </div>
 
         <div>

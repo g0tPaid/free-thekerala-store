@@ -5,14 +5,7 @@ import { useMemo, useState } from 'react';
 import { Header } from '@/components/store/header';
 import { ProductCard } from '@/components/store/product-card';
 import { BRAND, whatsappUrl } from '@/lib/brand';
-import {
-  CATEGORY_LABELS,
-  getQualityOption,
-  priceForQuality,
-  QUALITY_OPTIONS,
-  type QualityOptionId,
-  type StoreProduct,
-} from '@/lib/products';
+import { CATEGORY_LABELS, type StoreProduct } from '@/lib/products';
 import { useCart } from '@/lib/store';
 import { cn, formatPrice } from '@/lib/utils';
 
@@ -23,17 +16,15 @@ type ProductDetailsProps = {
 
 export function ProductDetails({ product, related }: ProductDetailsProps) {
   const addItem = useCart((state) => state.addItem);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? 'OS');
-  const [selectedQuality, setSelectedQuality] = useState<QualityOptionId>('NORMAL');
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? '');
   const [quantity, setQuantity] = useState(1);
 
   const gallery = useMemo(
     () => (product.images.length ? product.images : []),
     [product.images],
   );
-  const basePrice = product.salePrice ?? product.price;
-  const quality = getQualityOption(selectedQuality);
-  const unitPrice = priceForQuality(basePrice, selectedQuality, product.qualityPrices);
+  const unitPrice = product.salePrice ?? product.price;
+  const requiresSize = product.sizes.length > 0;
 
   return (
     <main className="min-h-screen">
@@ -61,16 +52,11 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
           {product.name}
         </h1>
         <p className="mt-4 text-sm font-medium text-[#3d6b58]">{formatPrice(unitPrice)}</p>
-        {selectedQuality !== 'NORMAL' ? (
-          <p className="mt-1 text-xs text-muted">
-            Base {formatPrice(basePrice)} · {quality.label}
-          </p>
-        ) : null}
         <p className="mt-5 text-sm leading-6 text-muted">{product.description}</p>
         <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">Material: {product.material}</p>
       </section>
 
-      {product.sizes.length ? (
+      {requiresSize ? (
         <section className="border-y border-hairline px-4 py-5">
           <p className="mb-3 text-[11px] font-semibold tracking-[0.22em]">SIZE</p>
           <div className="grid grid-cols-5 gap-2">
@@ -93,33 +79,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         </section>
       ) : null}
 
-      <section className={cn('border-hairline px-4 py-5', product.sizes.length ? 'border-b' : 'border-y')}>
-        <p className="mb-3 text-[11px] font-semibold tracking-[0.22em]">GRADE · ഗ്രേഡ്</p>
-        <div className="grid grid-cols-1 gap-2">
-          {QUALITY_OPTIONS.map((option) => {
-            const optionPrice = priceForQuality(basePrice, option.id, product.qualityPrices);
-            const selected = selectedQuality === option.id;
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => setSelectedQuality(option.id)}
-                className={cn(
-                  'flex items-center justify-between border px-4 py-3 text-left',
-                  selected ? 'border-[#4f8f6e] bg-[#4f8f6e] text-[#faf8f3]' : 'border-hairline',
-                )}
-              >
-                <span className="text-sm font-medium">{option.label}</span>
-                <span className={cn('text-xs', selected ? 'text-white/80' : 'text-muted')}>
-                  {formatPrice(optionPrice)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="px-4 py-5">
+      <section className={cn('px-4 py-5', requiresSize ? '' : 'border-t border-hairline')}>
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[11px] font-semibold tracking-[0.22em]">QUANTITY</p>
           <div className="flex items-center border border-hairline">
@@ -134,6 +94,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         </div>
         <button
           type="button"
+          disabled={requiresSize && !selectedSize}
           onClick={() =>
             addItem({
               productId: product.id,
@@ -141,14 +102,12 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
               name: product.name,
               price: unitPrice,
               imageUrl: product.images[0],
-              size: selectedSize,
+              size: selectedSize || undefined,
               color: product.colors[0],
-              quality: selectedQuality,
-              qualityLabel: quality.label,
               quantity,
             })
           }
-          className="w-full bg-[#4f8f6e] px-5 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf8f3]"
+          className="w-full bg-[#4f8f6e] px-5 py-4 text-[11px] font-semibold tracking-[0.22em] text-[#faf8f3] disabled:opacity-50"
         >
           ADD TO CART · {formatPrice(unitPrice)}
         </button>
