@@ -44,7 +44,7 @@ export function HeroBanners({ banners }: HeroBannersProps) {
   );
 
   return (
-    <section className="px-4 pb-1.5 pt-1.5" aria-label="Promotional banners">
+    <section className="px-2 pb-1.5 pt-1.5" aria-label="Promotional banners">
       <div className="relative overflow-hidden rounded-2xl">
         {active.href ? (
           <Link href={active.href} className="block">

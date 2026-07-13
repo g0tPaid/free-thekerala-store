@@ -33,7 +33,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
   const shellBorder = VIEW_STYLES[value].border;
 
   return (
-    <div className="px-4 pb-0.5 pt-1">
+    <div className="px-2 pb-0.5 pt-1">
       <div
         className={cn(
           'relative grid w-full grid-cols-3 overflow-hidden rounded-full border bg-white',

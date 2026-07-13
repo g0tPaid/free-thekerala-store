@@ -11,7 +11,7 @@ type CategoryNavProps = {
 export function CategoryNav({ value, onChange }: CategoryNavProps) {
   return (
     <nav
-      className="no-scrollbar flex gap-1.5 overflow-x-auto px-4 py-1"
+      className="no-scrollbar flex gap-1.5 overflow-x-auto px-2 py-1"
       aria-label="Product categories"
     >
       {CATEGORIES.map((category) => (

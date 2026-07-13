@@ -30,7 +30,7 @@ export function SearchOverlay({ products }: SearchOverlayProps) {
 
   return (
     <>
-      <div className="px-4 pb-2 pt-1">
+      <div className="px-2 pb-2 pt-1">
         <button
           type="button"
           onClick={() => setOpen(true)}
