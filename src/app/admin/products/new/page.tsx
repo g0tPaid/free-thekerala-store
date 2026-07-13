@@ -19,7 +19,7 @@ export default async function NewProductPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/products" className="text-sm text-black/55 underline underline-offset-4">
+        <Link href="/manage/products" className="text-sm text-black/55 underline underline-offset-4">
           Back to products
         </Link>
         <h1 className="mt-3 text-3xl font-semibold">New product</h1>

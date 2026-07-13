@@ -40,7 +40,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/orders" className="text-sm text-black/55 underline underline-offset-4">
+        <Link href="/manage/orders" className="text-sm text-black/55 underline underline-offset-4">
           Back to orders
         </Link>
         <div className="mt-3 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">

@@ -134,7 +134,7 @@ async function replaceProductMedia(productId: string, formData: FormData) {
 function bustCatalogCache(slug?: string) {
   revalidateTag(CATALOG_CACHE_TAG);
   revalidatePath("/");
-  revalidatePath("/admin/products");
+  revalidatePath("/manage/products");
   if (slug) {
     revalidatePath(`/product/${slug}`);
   }
@@ -172,7 +172,7 @@ export async function createProduct(
     return { error: actionError(error) };
   }
 
-  redirect("/admin/products");
+  redirect("/manage/products");
 }
 
 export async function updateProduct(
@@ -196,14 +196,14 @@ export async function updateProduct(
     });
 
     await replaceProductMedia(id, formData);
-    revalidatePath(`/admin/products/edit/${id}`);
+    revalidatePath(`/manage/products/edit/${id}`);
     bustCatalogCache(data.slug);
   } catch (error) {
     console.error("updateProduct failed", error);
     return { error: actionError(error) };
   }
 
-  redirect("/admin/products");
+  redirect("/manage/products");
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -230,7 +230,7 @@ export async function deleteProduct(formData: FormData) {
   }
 
   bustCatalogCache();
-  redirect("/admin/products");
+  redirect("/manage/products");
 }
 
 const MAX_FEATURED = 6;
@@ -254,12 +254,12 @@ export async function toggleFeaturedProduct(formData: FormData) {
       data: { featured: false, homepageOrder: null },
     });
     bustCatalogCache(product.slug);
-    redirect("/admin/products");
+    redirect("/manage/products");
   }
 
   const featuredCount = await prisma.product.count({ where: { featured: true } });
   if (featuredCount >= MAX_FEATURED) {
-    redirect("/admin/products?featuredError=limit");
+    redirect("/manage/products?featuredError=limit");
   }
 
   await prisma.product.update({
@@ -268,5 +268,5 @@ export async function toggleFeaturedProduct(formData: FormData) {
   });
 
   bustCatalogCache(product.slug);
-  redirect("/admin/products");
+  redirect("/manage/products");
 }

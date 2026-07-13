@@ -67,7 +67,7 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
             Homepage featured: {featuredCount}/{MAX_FEATURED} — toggle Feature to pick what shoppers see first
           </p>
         </div>
-        <Link href="/admin/products/new" className="bg-black px-4 py-2 text-sm font-medium text-white">
+        <Link href="/manage/products/new" className="bg-black px-4 py-2 text-sm font-medium text-white">
           New product
         </Link>
       </div>
@@ -78,7 +78,7 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
         </div>
       ) : null}
 
-      <form className="flex gap-2" action="/admin/products">
+      <form className="flex gap-2" action="/manage/products">
         <input
           name="q"
           defaultValue={query}
@@ -161,7 +161,7 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-3">
-                      <Link href={`/admin/products/edit/${product.id}`} className="underline underline-offset-4">
+                      <Link href={`/manage/products/edit/${product.id}`} className="underline underline-offset-4">
                         Edit
                       </Link>
                       <form action={deleteProduct}>

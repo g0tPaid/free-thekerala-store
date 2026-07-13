@@ -39,7 +39,7 @@ export async function createCategory(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/categories");
+  revalidatePath("/manage/categories");
 }
 
 export async function updateCategory(id: string, formData: FormData) {
@@ -60,7 +60,7 @@ export async function updateCategory(id: string, formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/categories");
+  revalidatePath("/manage/categories");
 }
 
 export async function deleteCategory(id: string) {
@@ -69,5 +69,5 @@ export async function deleteCategory(id: string) {
     where: { id },
   });
 
-  revalidatePath("/admin/categories");
+  revalidatePath("/manage/categories");
 }

@@ -56,13 +56,13 @@ export default async function AdminDashboardPage() {
 
   const currency = settings?.currency ?? "INR";
   const cards = [
-    { label: "Products", value: productCount.toLocaleString(), href: "/admin/products" },
-    { label: "Orders", value: orderCount.toLocaleString(), href: "/admin/orders" },
-    { label: "Customers", value: customerCount.toLocaleString(), href: "/admin/customers" },
+    { label: "Products", value: productCount.toLocaleString(), href: "/manage/products" },
+    { label: "Orders", value: orderCount.toLocaleString(), href: "/manage/orders" },
+    { label: "Customers", value: customerCount.toLocaleString(), href: "/manage/customers" },
     {
       label: "Revenue",
       value: money(Number(revenue._sum.total ?? 0), currency),
-      href: "/admin/orders",
+      href: "/manage/orders",
     },
   ];
 
@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
           <h1 className="mt-2 text-3xl font-semibold text-blue-700">Dashboard</h1>
         </div>
         <Link
-          href="/admin/products/new"
+          href="/manage/products/new"
           className="inline-flex w-fit bg-blue-600 px-4 py-2 text-sm font-medium text-white"
         >
           New product
@@ -91,7 +91,7 @@ export default async function AdminDashboardPage() {
               </p>
             </div>
             <Link
-              href="/admin/orders?status=PENDING"
+              href="/manage/orders?status=PENDING"
               className="bg-blue-600 px-4 py-2 text-sm font-medium text-white"
             >
               View pending
@@ -101,7 +101,7 @@ export default async function AdminDashboardPage() {
             {pendingOrders.map((order) => (
               <Link
                 key={order.id}
-                href={`/admin/orders/${order.id}`}
+                href={`/manage/orders/${order.id}`}
                 className="flex flex-wrap items-center justify-between gap-2 border border-blue-200 bg-white px-4 py-3 text-sm text-blue-800 hover:border-blue-400"
               >
                 <span className="font-medium">{order.number}</span>
@@ -136,7 +136,7 @@ export default async function AdminDashboardPage() {
             {recentOrders.map((order) => (
               <Link
                 key={order.id}
-                href={`/admin/orders/${order.id}`}
+                href={`/manage/orders/${order.id}`}
                 className="grid gap-2 p-5 text-sm text-blue-800 hover:bg-blue-50/60 md:grid-cols-5"
               >
                 <span className="font-medium">{order.number}</span>

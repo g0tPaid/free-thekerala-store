@@ -36,7 +36,7 @@ export async function createMediaAsset(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/media");
+  revalidatePath("/manage/media");
 }
 
 export async function deleteMediaAsset(id: string) {
@@ -45,5 +45,5 @@ export async function deleteMediaAsset(id: string) {
     where: { id },
   });
 
-  revalidatePath("/admin/media");
+  revalidatePath("/manage/media");
 }

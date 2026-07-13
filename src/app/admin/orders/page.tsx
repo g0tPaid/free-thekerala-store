@@ -52,7 +52,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
         <h1 className="mt-2 text-3xl font-semibold">Orders</h1>
       </div>
 
-      <form className="grid gap-2 sm:grid-cols-[1fr_180px_auto]" action="/admin/orders">
+      <form className="grid gap-2 sm:grid-cols-[1fr_180px_auto]" action="/manage/orders">
         <input
           name="q"
           defaultValue={query}
@@ -106,7 +106,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
                   <td className="px-4 py-4">{order.items.length}</td>
                   <td className="px-4 py-4">{money(order.total, order.currency)}</td>
                   <td className="px-4 py-4 text-right">
-                    <Link href={`/admin/orders/${order.id}`} className="underline underline-offset-4">
+                    <Link href={`/manage/orders/${order.id}`} className="underline underline-offset-4">
                       View
                     </Link>
                   </td>

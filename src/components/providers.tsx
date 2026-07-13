@@ -9,7 +9,7 @@ import { WhatsAppOrderButton } from '@/components/store/whatsapp-order-button';
 
 export function Providers({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '';
-  const isAdmin = pathname.startsWith('/admin');
+  const isAdmin = pathname.startsWith('/manage');
 
   if (isAdmin) {
     return (

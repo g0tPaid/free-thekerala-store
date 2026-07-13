@@ -15,7 +15,7 @@ type AdminSession = Session & {
 
 export const authOptions: NextAuthOptions = {
   pages: {
-    signIn: "/admin/login",
+    signIn: "/manage/login",
   },
   session: {
     strategy: "jwt",
@@ -95,7 +95,7 @@ export async function requireAdmin() {
   const session = await getAdminSession();
 
   if (!session) {
-    redirect("/admin/login");
+    redirect("/manage/login");
   }
 
   return session;

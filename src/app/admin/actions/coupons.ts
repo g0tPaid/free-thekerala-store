@@ -40,7 +40,7 @@ export async function createCoupon(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/coupons");
+  revalidatePath("/manage/coupons");
 }
 
 export async function updateCoupon(id: string, formData: FormData) {
@@ -57,7 +57,7 @@ export async function updateCoupon(id: string, formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/coupons");
+  revalidatePath("/manage/coupons");
 }
 
 export async function deleteCoupon(id: string) {
@@ -66,5 +66,5 @@ export async function deleteCoupon(id: string) {
     where: { id },
   });
 
-  revalidatePath("/admin/coupons");
+  revalidatePath("/manage/coupons");
 }

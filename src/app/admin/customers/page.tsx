@@ -44,7 +44,7 @@ export default async function AdminCustomersPage({ searchParams }: CustomersPage
         <h1 className="mt-2 text-3xl font-semibold">Customers</h1>
       </div>
 
-      <form action="/admin/customers">
+      <form action="/manage/customers">
         <input
           name="q"
           defaultValue={query}

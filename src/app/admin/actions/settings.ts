@@ -57,5 +57,5 @@ export async function updateSettings(formData: FormData) {
   });
 
   revalidatePath("/");
-  revalidatePath("/admin/settings");
+  revalidatePath("/manage/settings");
 }

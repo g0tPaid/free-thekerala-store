@@ -21,7 +21,7 @@ function AdminLoginForm() {
       email: formData.get("email"),
       password: formData.get("password"),
       redirect: false,
-      callbackUrl: searchParams.get("callbackUrl") ?? "/admin",
+      callbackUrl: searchParams.get("callbackUrl") ?? "/manage",
     });
 
     setIsSubmitting(false);
@@ -31,7 +31,7 @@ function AdminLoginForm() {
       return;
     }
 
-    router.push(result?.url ?? "/admin");
+    router.push(result?.url ?? "/manage");
     router.refresh();
   }
 
