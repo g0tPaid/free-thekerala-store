@@ -12,7 +12,7 @@ const navItems = [
   { href: "/manage/customers", label: "Customers" },
   { href: "/manage/coupons", label: "Coupons" },
   { href: "/manage/media", label: "Media" },
-  { href: "/manage/settings#banners", label: "Banners" },
+  { href: "/manage/banners", label: "Banners" },
   { href: "/manage/settings", label: "Settings" },
 ];
 
@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const isActive =
               item.href === "/manage"
                 ? pathname === item.href
-                : pathname.startsWith(item.href);
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
