@@ -10,15 +10,16 @@ export const CATEGORY_LABELS: Record<string, string> = {
   APPAREL: 'APPAREL · വസ്ത്രം',
 };
 
-export const VIEWS = ['ALL', 'WOMEN', 'KIDS', 'MEN'] as const;
+export const AUDIENCE_VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
+export const VIEWS = ['ALL', ...AUDIENCE_VIEWS] as const;
 
 export type ProductCategory = string;
+export type AudienceView = (typeof AUDIENCE_VIEWS)[number];
 export type ProductView = (typeof VIEWS)[number];
 export type LeafCategory = string;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
-export const VIEW_LABELS: Record<ProductView, string> = {
-  ALL: 'ALL · എല്ലാം',
+export const VIEW_LABELS: Record<AudienceView, string> = {
   WOMEN: '🌸 ഓൾക്ക്',
   KIDS: '🧒 കുട്ട്യേൾക്ക്',
   MEN: '💙 ഓന്',

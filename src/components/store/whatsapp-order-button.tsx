@@ -25,10 +25,10 @@ export function WhatsAppOrderButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={LABEL}
-      className="fixed bottom-5 right-4 z-50 inline-flex items-center justify-center gap-2 rounded-full border border-[#1ebe57] bg-[#25D366] px-4 py-2.5 shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:brightness-105 active:scale-[0.98]"
+      className="fixed bottom-5 right-4 z-50 inline-flex items-center justify-center gap-2.5 rounded-full border border-[#1ebe57] bg-[#25D366] px-5 py-3.5 shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:brightness-105 active:scale-[0.98]"
     >
-      <WhatsAppIcon className="size-5 shrink-0 text-white" />
-      <span className="inline-flex items-center justify-center pt-[1px] font-ml text-[14px] font-semibold leading-none tracking-normal text-white">
+      <WhatsAppIcon className="size-6 shrink-0 text-white" />
+      <span className="inline-flex items-center justify-center pt-[1px] font-ml text-[16px] font-semibold leading-none tracking-normal text-white">
         {LABEL}
       </span>
     </a>

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ProductView, VIEW_LABELS, VIEWS } from '@/lib/products';
+import { AUDIENCE_VIEWS, type AudienceView, type ProductView, VIEW_LABELS } from '@/lib/products';
 import { cn } from '@/lib/utils';
 
 type ViewToggleProps = {
@@ -9,14 +9,9 @@ type ViewToggleProps = {
 };
 
 const VIEW_STYLES: Record<
-  ProductView,
+  AudienceView,
   { active: string; idle: string; border: string }
 > = {
-  ALL: {
-    active: 'bg-[#4f8f6e] text-white',
-    idle: 'bg-transparent text-[#3d6b58]',
-    border: 'border-[#4f8f6e]/40',
-  },
   WOMEN: {
     active: 'bg-[#ec4899] text-white',
     idle: 'bg-transparent text-[#be185d]',
@@ -35,26 +30,27 @@ const VIEW_STYLES: Record<
 };
 
 export function ViewToggle({ value, onChange }: ViewToggleProps) {
-  const shellBorder = VIEW_STYLES[value].border;
+  const shellBorder =
+    value === 'ALL' ? 'border-black/15' : VIEW_STYLES[value].border;
 
   return (
     <div className="px-2 pb-0.5 pt-1">
       <div
         className={cn(
-          'relative grid w-full grid-cols-4 overflow-hidden rounded-full border bg-white',
+          'relative grid w-full grid-cols-3 overflow-hidden rounded-full border bg-white',
           shellBorder,
         )}
       >
-        {VIEWS.map((view) => {
+        {AUDIENCE_VIEWS.map((view) => {
           const styles = VIEW_STYLES[view];
           const selected = value === view;
           return (
             <button
               key={view}
               type="button"
-              onClick={() => onChange(view)}
+              onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'relative z-10 rounded-full px-1 py-1.5 font-ml text-[9px] font-bold leading-tight tracking-normal transition sm:text-[10px] sm:px-1.5',
+                'relative z-10 rounded-full px-1.5 py-1.5 font-ml text-[10px] font-bold leading-tight tracking-normal transition',
                 selected ? styles.active : styles.idle,
               )}
             >
