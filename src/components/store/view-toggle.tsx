@@ -49,7 +49,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
               type="button"
               onClick={() => onChange(view)}
               className={cn(
-                'relative z-10 rounded-full px-2 py-1.5 text-[9px] font-bold tracking-[0.08em] transition',
+                'relative z-10 rounded-full px-1.5 py-1.5 font-ml text-[10px] font-bold leading-tight tracking-normal transition',
                 selected ? styles.active : styles.idle,
               )}
             >
