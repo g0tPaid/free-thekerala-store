@@ -61,10 +61,10 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   return (
     <main className="min-h-screen">
       <Header />
-      <OffersBanner />
       <HeroBanners banners={banners} />
       <ViewToggle value={view} onChange={changeView} />
       <CategoryNav categories={availableCategories} value={category} onChange={changeCategory} />
+      <OffersBanner />
       <SearchOverlay products={filterProducts(catalog, 'ALL', view)} />
       <ProductGrid products={products} />
       {filtered.length ? (
