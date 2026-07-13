@@ -23,7 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <SiteShell>
       {children}
       <CartDrawer />
-      <WhatsAppOrderButton />
+      {pathname === '/' ? <WhatsAppOrderButton /> : null}
     </SiteShell>
   );
 }
