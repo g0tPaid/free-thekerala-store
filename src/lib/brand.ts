@@ -7,7 +7,7 @@ export const BRAND = {
   phoneDisplay: '+971 58 906 1969',
   whatsapp: '971589061969',
   currency: 'INR',
-  upiId: 'thekeralastore@upi',
+  upiId: '7736667000@SUPERYES',
   upiName: 'The Kerala Store',
 } as const;
 
