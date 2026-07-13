@@ -88,7 +88,9 @@ export default async function AdminSettingsPage() {
         <div id="banners" className="md:col-span-2 scroll-mt-24 border-t border-black/10 pt-5">
           <h2 className="text-lg font-semibold">Homepage banners (3)</h2>
           <p className="mt-1 text-sm text-black/55">
-            Upload or paste URLs for up to 3 rotating banners at the top of the shop. Empty slots use random defaults.
+            Upload or paste URLs for up to 3 rotating banners. Use{' '}
+            <span className="font-medium text-black">1200 × 500 px</span> (ratio 12:5) so images are not
+            cropped. Empty slots use random defaults.
           </p>
         </div>
 

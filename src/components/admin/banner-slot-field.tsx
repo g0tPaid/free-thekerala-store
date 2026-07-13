@@ -89,7 +89,10 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
             }}
           />
         </label>
-        <p className="text-xs text-black/50">Recommended ~1200×480. Leave blank to use default art.</p>
+        <p className="text-xs text-black/50">
+          Exact size: <span className="font-medium text-black">1200 × 500 px</span> (12:5). JPG / PNG /
+          WebP. Matching this ratio avoids crop/squash.
+        </p>
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
     </div>

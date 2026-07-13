@@ -26,7 +26,7 @@ export function HeroBanners({ banners }: HeroBannersProps) {
   const active = slides[index] ?? slides[0];
 
   const media = (
-    <div className="relative aspect-[2.4/1] min-h-[140px] w-full overflow-hidden rounded-2xl bg-[#4f8f6e] sm:aspect-[2.6/1] sm:min-h-[180px]">
+    <div className="relative aspect-[12/5] min-h-[140px] w-full overflow-hidden rounded-2xl bg-[#4f8f6e] sm:min-h-[180px]">
       {slides.map((banner, i) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
