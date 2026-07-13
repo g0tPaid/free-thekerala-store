@@ -30,7 +30,7 @@ function bustCategoryCache() {
   revalidatePath("/manage/products");
 }
 
-const AUDIENCE_PARENTS = [
+export const AUDIENCE_PARENTS = [
   { name: "WOMEN", slug: "women", sortOrder: 0, description: "🌸 ഓൾക്ക്" },
   { name: "KIDS", slug: "kids", sortOrder: 1, description: "🧒 കുട്ട്യേൾക്ക്" },
   { name: "MEN", slug: "men", sortOrder: 2, description: "💙 ഓന്" },
@@ -83,74 +83,71 @@ async function migrateLegacyParent(legacySlug: string, targetSlug: string) {
   });
 }
 
-/** Promote a mis-nested / mis-slug audience row (e.g. KIDS under WOMEN) to a top-level parent. */
-async function recoverAudienceByName(name: string, targetSlug: string) {
-  const audience = AUDIENCE_PARENTS.find((item) => item.slug === targetSlug);
-  if (!audience) return;
+/** Force WOMEN / KIDS / MEN to exist as top-level parents (idempotent). */
+export async function syncAudienceParents() {
+  await migrateLegacyParent("shop", "women");
+  await migrateLegacyParent("gifts", "men");
 
-  const bySlug = await prisma.category.findUnique({ where: { slug: targetSlug } });
-  if (bySlug) {
-    if (bySlug.parentId || bySlug.name !== audience.name || !bySlug.isVisible) {
+  for (const parent of AUDIENCE_PARENTS) {
+    const existing = await prisma.category.findUnique({ where: { slug: parent.slug } });
+
+    if (existing) {
+      if (
+        existing.parentId !== null ||
+        existing.name !== parent.name ||
+        existing.sortOrder !== parent.sortOrder ||
+        !existing.isVisible
+      ) {
+        await prisma.category.update({
+          where: { id: existing.id },
+          data: {
+            name: parent.name,
+            description: parent.description,
+            sortOrder: parent.sortOrder,
+            isVisible: true,
+            parentId: null,
+          },
+        });
+      }
+      continue;
+    }
+
+    const byName = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { name: { equals: parent.name, mode: "insensitive" } },
+          { name: { equals: parent.description, mode: "insensitive" } },
+        ],
+        slug: { not: { startsWith: "legacy-" } },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (byName) {
+      const slugTaken = await prisma.category.findUnique({ where: { slug: parent.slug } });
+      if (slugTaken && slugTaken.id !== byName.id) {
+        await prisma.category.update({
+          where: { id: slugTaken.id },
+          data: { slug: `legacy-${slugTaken.slug}-${slugTaken.id.slice(-4)}` },
+        });
+      }
+
       await prisma.category.update({
-        where: { id: bySlug.id },
+        where: { id: byName.id },
         data: {
-          name: audience.name,
-          description: audience.description,
-          sortOrder: audience.sortOrder,
+          name: parent.name,
+          slug: parent.slug,
+          description: parent.description,
+          sortOrder: parent.sortOrder,
           isVisible: true,
           parentId: null,
         },
       });
+      continue;
     }
-    return;
-  }
 
-  const byName = await prisma.category.findFirst({
-    where: {
-      name: { equals: name, mode: "insensitive" },
-      slug: { not: { startsWith: "legacy-" } },
-    },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (byName) {
-    await prisma.category.update({
-      where: { id: byName.id },
+    await prisma.category.create({
       data: {
-        name: audience.name,
-        slug: audience.slug,
-        description: audience.description,
-        sortOrder: audience.sortOrder,
-        isVisible: true,
-        parentId: null,
-      },
-    });
-  }
-}
-
-export async function ensureAudienceParents() {
-  await requireAdmin();
-
-  // Convert renamed SHOP/GIFTS rows (slug still shop/gifts) into women/men
-  await migrateLegacyParent("shop", "women");
-  await migrateLegacyParent("gifts", "men");
-
-  // Recover WOMEN / KIDS / MEN if renamed, nested, or missing slug
-  await recoverAudienceByName("WOMEN", "women");
-  await recoverAudienceByName("KIDS", "kids");
-  await recoverAudienceByName("MEN", "men");
-
-  for (const parent of AUDIENCE_PARENTS) {
-    await prisma.category.upsert({
-      where: { slug: parent.slug },
-      update: {
-        name: parent.name,
-        description: parent.description,
-        sortOrder: parent.sortOrder,
-        isVisible: true,
-        parentId: null,
-      },
-      create: {
         name: parent.name,
         slug: parent.slug,
         description: parent.description,
@@ -160,7 +157,11 @@ export async function ensureAudienceParents() {
       },
     });
   }
+}
 
+export async function ensureAudienceParents() {
+  await requireAdmin();
+  await syncAudienceParents();
   bustCategoryCache();
 }
 

@@ -2,6 +2,7 @@ import {
   createCategory,
   deleteCategory,
   ensureAudienceParents,
+  syncAudienceParents,
   updateCategory,
 } from "@/app/manage/actions/categories";
 import { requireAdmin } from "@/lib/auth";
@@ -9,8 +10,7 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-const AUDIENCE_SLUGS = new Set(["women", "kids", "men"]);
-const AUDIENCE_NAMES = new Set(["WOMEN", "KIDS", "MEN"]);
+const AUDIENCE_ORDER = ["women", "kids", "men"] as const;
 
 const AUDIENCE_LABELS: Record<string, string> = {
   women: "🌸 ഓൾക്ക് · WOMEN",
@@ -18,23 +18,15 @@ const AUDIENCE_LABELS: Record<string, string> = {
   men: "💙 ഓന് · MEN",
 };
 
-function isAudienceParent(category: { slug: string; name: string; parentId: string | null }) {
-  if (category.parentId) return false;
-  if (AUDIENCE_SLUGS.has(category.slug)) return true;
-  return AUDIENCE_NAMES.has(category.name.trim().toUpperCase());
-}
-
 function audienceLabel(category: { slug: string; name: string }) {
   if (AUDIENCE_LABELS[category.slug]) return AUDIENCE_LABELS[category.slug];
-  const key = category.name.trim().toUpperCase();
-  if (key === "WOMEN") return AUDIENCE_LABELS.women;
-  if (key === "KIDS") return AUDIENCE_LABELS.kids;
-  if (key === "MEN") return AUDIENCE_LABELS.men;
   return category.name;
 }
 
 export default async function AdminCategoriesPage() {
   await requireAdmin();
+  // Always ensure WOMEN / KIDS / MEN exist as top-level parents
+  await syncAudienceParents();
 
   const categories = await prisma.category.findMany({
     include: {
@@ -48,12 +40,14 @@ export default async function AdminCategoriesPage() {
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
 
-  const audienceParents = categories
-    .filter((category) => isAudienceParent(category))
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const bySlug = new Map(categories.map((category) => [category.slug, category]));
+  const audienceParents = AUDIENCE_ORDER.map((slug) => bySlug.get(slug)).filter(
+    (category): category is NonNullable<typeof category> => Boolean(category),
+  );
 
+  const audienceIds = new Set(audienceParents.map((parent) => parent.id));
   const otherTopLevel = categories.filter(
-    (category) => !category.parentId && !isAudienceParent(category),
+    (category) => !category.parentId && !audienceIds.has(category.id),
   );
 
   return (
@@ -126,9 +120,9 @@ export default async function AdminCategoriesPage() {
             Add child
           </button>
         </form>
-        {!audienceParents.length ? (
+        {audienceParents.length < 3 ? (
           <p className="mt-4 text-sm text-amber-800">
-            No audience parents yet — click <strong>Setup WOMEN / KIDS / MEN parents</strong> above.
+            Missing a parent — click <strong>Setup / fix WOMEN · KIDS · MEN parents</strong> above.
           </p>
         ) : null}
       </section>
@@ -137,9 +131,7 @@ export default async function AdminCategoriesPage() {
         <section key={parent.id} className="space-y-3 border border-black/10 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 pb-3">
             <div>
-              <h2 className="text-xl font-semibold">
-                {audienceLabel(parent)}
-              </h2>
+              <h2 className="text-xl font-semibold">{audienceLabel(parent)}</h2>
               <p className="mt-1 text-xs text-black/50">
                 Parent · slug `{parent.slug}` · {parent.children.length} child categories
               </p>
@@ -160,89 +152,94 @@ export default async function AdminCategoriesPage() {
             </form>
           </div>
 
-          {parent.children.map((child) => (
-            <form
-              key={child.id}
-              action={updateCategory.bind(null, child.id)}
-              className="grid gap-3 border border-black/10 bg-[#faf8f3] p-4 md:grid-cols-12"
-            >
-              <input
-                name="name"
-                defaultValue={child.name}
-                className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
-              />
-              <input
-                name="slug"
-                defaultValue={child.slug}
-                className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
-              />
-              <select
-                name="parentId"
-                defaultValue={child.parentId ?? parent.id}
-                className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
+          {parent.children.length ? (
+            parent.children.map((child) => (
+              <form
+                key={child.id}
+                action={updateCategory.bind(null, child.id)}
+                className="grid gap-3 border border-black/10 p-4 md:grid-cols-6"
               >
-                {audienceParents.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {audienceLabel(item)}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="description"
-                defaultValue={child.description ?? ""}
-                className="border border-black/15 bg-white px-3 py-2 md:col-span-3"
-              />
-              <input
-                name="sortOrder"
-                type="number"
-                defaultValue={child.sortOrder}
-                className="border border-black/15 bg-white px-3 py-2"
-              />
-              <label className="flex items-center gap-2 text-sm">
-                <input name="isVisible" type="checkbox" defaultChecked={child.isVisible} />
-                Visible
-              </label>
-              <div className="flex items-center justify-between gap-3 md:col-span-12">
-                <p className="text-xs text-black/50">{child._count.products} product(s)</p>
-                <div className="flex gap-3">
+                <input
+                  name="name"
+                  defaultValue={child.name}
+                  className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
+                />
+                <input
+                  name="slug"
+                  defaultValue={child.slug}
+                  className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
+                />
+                <select
+                  name="parentId"
+                  defaultValue={parent.id}
+                  className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
+                >
+                  {audienceParents.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {audienceLabel(item)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="description"
+                  defaultValue={child.description ?? ""}
+                  className="border border-black/15 bg-white px-3 py-2 md:col-span-3"
+                />
+                <input
+                  name="sortOrder"
+                  type="number"
+                  defaultValue={child.sortOrder}
+                  className="border border-black/15 bg-white px-3 py-2"
+                />
+                <label className="flex items-center gap-2 text-sm">
+                  <input name="isVisible" type="checkbox" defaultChecked={child.isVisible} />
+                  Visible
+                </label>
+                <div className="flex items-center gap-3 text-sm md:col-span-2">
+                  <span className="text-black/45">{child._count.products} product(s)</span>
                   <button type="submit" className="underline underline-offset-4">
                     Save
                   </button>
                   <button
+                    type="submit"
                     formAction={deleteCategory.bind(null, child.id)}
                     className="text-red-700 underline underline-offset-4"
-                    type="submit"
                   >
                     Delete
                   </button>
                 </div>
-              </div>
-            </form>
-          ))}
-
-          {!parent.children.length ? (
-            <p className="text-sm text-black/50">No children yet under this parent.</p>
-          ) : null}
+              </form>
+            ))
+          ) : (
+            <p className="text-sm text-black/45">No child categories yet — add one above.</p>
+          )}
         </section>
       ))}
 
       {otherTopLevel.length ? (
-        <section className="space-y-3 border border-amber-200 bg-amber-50 p-5">
-          <h2 className="text-lg font-semibold text-amber-950">Other top-level (fix these)</h2>
-          <p className="text-sm text-amber-900/80">
-            These are not WOMEN/KIDS/MEN. Move them under a parent, or hide/delete legacy SHOP/GIFTS.
-          </p>
+        <section className="space-y-3 border border-amber-200 bg-amber-50/60 p-5">
+          <div>
+            <h2 className="text-lg font-semibold">Other top-level (fix these)</h2>
+            <p className="mt-1 text-sm text-black/55">
+              These are not WOMEN/KIDS/MEN. Move them under a parent, or hide/delete legacy SHOP/GIFTS.
+            </p>
+          </div>
           {otherTopLevel.map((category) => (
             <form
               key={category.id}
               action={updateCategory.bind(null, category.id)}
-              className="grid gap-3 border border-amber-200 bg-white p-4 md:grid-cols-12"
+              className="grid gap-3 border border-black/10 bg-white p-4 md:grid-cols-6"
             >
-              <input
-                name="name"
-                defaultValue={category.name}
-                className="border border-black/15 px-3 py-2 md:col-span-2"
-              />
+              <div className="md:col-span-2">
+                <p className="text-xs uppercase tracking-[0.14em] text-black/40">
+                  {category.name} / {category.slug}
+                </p>
+                <input
+                  name="name"
+                  defaultValue={category.name}
+                  className="mt-1 w-full border border-black/15 px-3 py-2"
+                />
+              </div>
               <input
                 name="slug"
                 defaultValue={category.slug}
@@ -251,7 +248,7 @@ export default async function AdminCategoriesPage() {
               <select
                 name="parentId"
                 defaultValue=""
-                className="border border-black/15 bg-white px-3 py-2 md:col-span-3"
+                className="border border-black/15 bg-white px-3 py-2 md:col-span-2"
               >
                 <option value="">Keep as top-level</option>
                 {audienceParents.map((parent) => (
@@ -270,21 +267,18 @@ export default async function AdminCategoriesPage() {
                 <input name="isVisible" type="checkbox" defaultChecked={category.isVisible} />
                 Visible
               </label>
-              <input type="hidden" name="description" value={category.description ?? ""} />
-              <div className="flex items-center justify-between gap-3 md:col-span-12">
-                <p className="text-xs text-black/50">{category._count.products} product(s)</p>
-                <div className="flex gap-3">
-                  <button type="submit" className="underline underline-offset-4">
-                    Save
-                  </button>
-                  <button
-                    formAction={deleteCategory.bind(null, category.id)}
-                    className="text-red-700 underline underline-offset-4"
-                    type="submit"
-                  >
-                    Delete
-                  </button>
-                </div>
+              <div className="flex items-center gap-3 text-sm md:col-span-3">
+                <span className="text-black/45">{category._count.products} product(s)</span>
+                <button type="submit" className="underline underline-offset-4">
+                  Save
+                </button>
+                <button
+                  type="submit"
+                  formAction={deleteCategory.bind(null, category.id)}
+                  className="text-red-700 underline underline-offset-4"
+                >
+                  Delete
+                </button>
               </div>
             </form>
           ))}
