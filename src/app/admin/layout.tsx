@@ -16,7 +16,7 @@ const navItems = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
 
   if (pathname === "/admin/login") {
     return children;
