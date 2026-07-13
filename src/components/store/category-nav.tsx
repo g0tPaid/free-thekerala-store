@@ -22,8 +22,8 @@ export function CategoryNav({ value, onChange }: CategoryNavProps) {
           className={cn(
             'shrink-0 rounded-full border px-3 py-1 text-[9px] font-bold tracking-[0.12em] transition',
             value === category
-              ? 'border-black bg-black text-white'
-              : 'border-black/20 bg-white text-black hover:border-black',
+              ? 'border-[#4f8f6e] bg-[#4f8f6e]/12 text-[#3d6b58]'
+              : 'border-black/20 bg-white text-black hover:border-[#4f8f6e]/60',
           )}
         >
           {CATEGORY_LABELS[category]}
