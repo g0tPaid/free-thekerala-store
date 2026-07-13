@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { Header } from '@/components/store/header';
 import { ProductCard } from '@/components/store/product-card';
 import { BRAND, whatsappUrl } from '@/lib/brand';
-import { CATEGORY_LABELS, type StoreProduct } from '@/lib/products';
+import { categoryLabel, type StoreProduct } from '@/lib/products';
 import { useCart } from '@/lib/store';
 import { cn, formatPrice } from '@/lib/utils';
 
@@ -50,7 +50,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
             : product.line === 'MEN'
               ? '💙 ഓന്'
               : '🌸 ഓൾക്ക്'}{' '}
-          · {CATEGORY_LABELS[product.category]}
+          · {categoryLabel(product.category)}
         </p>
         <h1 className="font-serif text-5xl leading-[0.92] tracking-[-0.06em] text-[#3d6b58]">
           {product.name}

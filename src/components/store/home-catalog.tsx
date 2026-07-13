@@ -11,6 +11,7 @@ import { ViewToggle } from '@/components/store/view-toggle';
 import type { HomeBanner } from '@/lib/banners';
 import { BRAND, whatsappUrl } from '@/lib/brand';
 import {
+  categoriesForView,
   filterProducts,
   type ProductCategory,
   type ProductView,
@@ -28,6 +29,11 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   const [category, setCategory] = useState<ProductCategory>('ALL');
   const [view, setView] = useState<ProductView>('WOMEN');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const availableCategories = useMemo(
+    () => categoriesForView(catalog, view),
+    [catalog, view],
+  );
 
   const filtered = useMemo(() => {
     return filterProducts(catalog, category, view)
@@ -48,6 +54,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
 
   function changeView(nextView: ProductView) {
     setView(nextView);
+    setCategory('ALL');
     setVisibleCount(PAGE_SIZE);
   }
 
@@ -57,7 +64,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
       <OffersBanner />
       <HeroBanners banners={banners} />
       <ViewToggle value={view} onChange={changeView} />
-      <CategoryNav value={category} onChange={changeCategory} />
+      <CategoryNav categories={availableCategories} value={category} onChange={changeCategory} />
       <SearchOverlay products={filterProducts(catalog, 'ALL', view)} />
       <ProductGrid products={products} />
       {filtered.length ? (

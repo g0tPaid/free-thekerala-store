@@ -1,20 +1,20 @@
 import { slugify } from '@/lib/utils';
 
-/** Storefront category pills */
-export const CATEGORIES = [
-  'ALL',
-  'HOME',
-  'SPICES',
-  'FOOD',
-  'CARE',
-  'APPAREL',
-] as const;
+/** Storefront category pills — built from live catalog; these are display labels only */
+export const CATEGORY_LABELS: Record<string, string> = {
+  ALL: 'ALL · എല്ലാം',
+  HOME: 'HOME · വീട്',
+  SPICES: 'SPICES · മസാല',
+  FOOD: 'FOOD · ഭക്ഷണം',
+  CARE: 'CARE · പരിചരണം',
+  APPAREL: 'APPAREL · വസ്ത്രം',
+};
 
 export const VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
 
-export type ProductCategory = (typeof CATEGORIES)[number];
+export type ProductCategory = string;
 export type ProductView = (typeof VIEWS)[number];
-export type LeafCategory = Exclude<ProductCategory, 'ALL'>;
+export type LeafCategory = string;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
 export const VIEW_LABELS: Record<ProductView, string> = {
@@ -23,14 +23,10 @@ export const VIEW_LABELS: Record<ProductView, string> = {
   MEN: '💙 ഓന്',
 };
 
-export const CATEGORY_LABELS: Record<ProductCategory, string> = {
-  ALL: 'ALL · എല്ലാം',
-  HOME: 'HOME · വീട്',
-  SPICES: 'SPICES · മസാല',
-  FOOD: 'FOOD · ഭക്ഷണം',
-  CARE: 'CARE · പരിചരണം',
-  APPAREL: 'APPAREL · വസ്ത്രം',
-};
+export function categoryLabel(category: string) {
+  const key = category.trim().toUpperCase();
+  return CATEGORY_LABELS[key] ?? key;
+}
 
 export const QUALITY_OPTIONS = [
   { id: 'NORMAL', label: 'Standard', multiplier: 1 },
@@ -162,62 +158,41 @@ function toNumber(value: DecimalLike) {
 }
 
 function toCatalogLine(category?: PrismaCategoryShape | null): CatalogLine {
-  const bits = [
-    category?.slug,
-    category?.name,
-    category?.parent?.slug,
-    category?.parent?.name,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toUpperCase();
+  // Exact parent / leaf slug first — never use substring "MEN" inside "WOMEN"
+  const parentSlug = (category?.parent?.slug || '').toLowerCase();
+  const leafSlug = (category?.slug || '').toLowerCase();
+  const parentName = (category?.parent?.name || '').trim().toUpperCase();
+  const leafName = (category?.name || '').trim().toUpperCase();
 
-  if (bits.includes('KID') || bits.includes('CHILD')) return 'KIDS';
-  if (bits.includes('MEN') || bits.includes('MALE') || bits.includes('MAN')) return 'MEN';
-  if (
-    bits.includes('WOMEN') ||
-    bits.includes('WOMAN') ||
-    bits.includes('LADIES') ||
-    bits.includes('GIRL')
-  ) {
-    return 'WOMEN';
+  for (const token of [parentSlug, leafSlug]) {
+    if (token === 'kids' || token === 'kid' || token === 'children') return 'KIDS';
+    if (token === 'women' || token === 'woman' || token === 'ladies') return 'WOMEN';
+    if (token === 'men' || token === 'man' || token === 'male' || token === 'gifts') return 'MEN';
+    if (token === 'shop') return 'WOMEN';
   }
-  // Legacy parents from older SHOP / GIFTS setup
-  if (bits.includes('GIFT')) return 'WOMEN';
+
+  for (const token of [parentName, leafName]) {
+    if (token === 'KIDS' || token === 'KID' || token === 'CHILDREN') return 'KIDS';
+    if (token === 'WOMEN' || token === 'WOMAN' || token === 'LADIES') return 'WOMEN';
+    if (token === 'MEN' || token === 'MAN' || token === 'MALE') return 'MEN';
+  }
+
+  const bits = [parentSlug, leafSlug, parentName, leafName].filter(Boolean).join(' ').toUpperCase();
+  if (/\bKIDS?\b|\bCHILD/.test(bits)) return 'KIDS';
+  if (/\bWOMEN\b|\bWOMAN\b|\bLADIES\b|\bGIRL/.test(bits)) return 'WOMEN';
+  if (/\bMEN\b|\bMALE\b|\bMAN\b|\bGIFT/.test(bits)) return 'MEN';
   return 'WOMEN';
 }
 
-function toCategory(input?: string | null): LeafCategory {
-  const normalized = (input || '').toUpperCase().replace(/_/g, '-').replace(/\s+/g, '-');
-  if (normalized.includes('SPICE') || normalized.includes('MASALA')) return 'SPICES';
-  if (normalized.includes('FOOD') || normalized.includes('BEVERAGE') || normalized.includes('TEA')) {
-    return 'FOOD';
-  }
-  if (
-    normalized.includes('CARE') ||
-    normalized.includes('BEAUTY') ||
-    normalized.includes('PERSONAL') ||
-    normalized.includes('AYUR')
-  ) {
-    return 'CARE';
-  }
-  if (
-    normalized.includes('APPAREL') ||
-    normalized.includes('CLOTH') ||
-    normalized.includes('SARI') ||
-    normalized.includes('FASHION')
-  ) {
-    return 'APPAREL';
-  }
-  if (
-    normalized.includes('HOME') ||
-    normalized.includes('LIVING') ||
-    normalized.includes('DECOR') ||
-    normalized.includes('JEWEL')
-  ) {
-    return 'HOME';
-  }
-  return 'HOME';
+function toCategory(category?: PrismaCategoryShape | null): LeafCategory {
+  const name = category?.name?.trim();
+  if (name) return name.toUpperCase();
+
+  const slug = (category?.slug || '').trim().toLowerCase();
+  if (!slug) return 'OTHER';
+
+  const leaf = slug.replace(/^(women|kids|men)-/, '').replace(/-/g, ' ');
+  return leaf.toUpperCase() || 'OTHER';
 }
 
 export function mapPrismaProductToStore(product: PrismaProductShape): StoreProduct {
@@ -233,7 +208,7 @@ export function mapPrismaProductToStore(product: PrismaProductShape): StoreProdu
     salePrice: product.salePrice ? toNumber(product.salePrice) : null,
     qualityPrices: parseQualityPrices(product.qualityPrices),
     line: toCatalogLine(product.category),
-    category: toCategory(product.category?.slug || product.category?.name || product.tags?.[0]),
+    category: toCategory(product.category),
     description:
       product.longDescription ||
       product.shortDescription ||
@@ -384,6 +359,16 @@ export function filterProducts(
     ...product,
     image: product.images[0],
   }));
+}
+
+/** Category pills for a view — only categories that have products (plus ALL). */
+export function categoriesForView(products: StoreProduct[], view: ProductView): ProductCategory[] {
+  const found = new Set<string>();
+  for (const product of products) {
+    if (product.line !== view) continue;
+    if (product.category) found.add(product.category.toUpperCase());
+  }
+  return ['ALL', ...Array.from(found).sort((a, b) => a.localeCompare(b))];
 }
 
 export function getProductBySlug(slug: string) {
