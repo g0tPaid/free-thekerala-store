@@ -79,7 +79,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
             </button>
           ) : (
             <p className="w-full border border-hairline px-5 py-4 text-center font-ml text-[12px] font-semibold tracking-[0.08em] text-muted">
-              ഇതിനൊരു അവസാനല്ല
+              ഇതിനൊരു അവസാനം ഉണ്ടല്ലേ ..അക്ഷയപാത്രം മാതിരി ആണ്
             </p>
           )}
         </div>
