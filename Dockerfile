@@ -34,4 +34,7 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 ENV UPLOAD_DIR=/app/uploads
 RUN mkdir -p /app/uploads/products /app/public/uploads/products && chmod -R 777 /app/uploads /app/public/uploads
 EXPOSE 3000
-CMD ["sh", "-c", "mkdir -p /app/uploads/products && echo \"Running migrations...\" && pnpm exec prisma migrate deploy && echo \"Starting Next.js on 0.0.0.0:3000\" && exec pnpm exec next start --hostname 0.0.0.0 --port 3000"]
+# Migrate in the start command only (no railway.json releaseCommand) so a missing
+# DATABASE_URL shows clearly in runtime logs instead of a silent release failure.
+# Bind to Railway's PORT when set; default 3000 for local Docker runs.
+CMD ["sh", "-c", "mkdir -p /app/uploads/products && echo \"Running migrations...\" && pnpm exec prisma migrate deploy && echo \"Starting Next.js on 0.0.0.0:${PORT:-3000}\" && exec pnpm exec next start --hostname 0.0.0.0 --port ${PORT:-3000}"]
