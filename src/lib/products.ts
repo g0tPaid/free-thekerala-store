@@ -10,16 +10,17 @@ export const CATEGORIES = [
   'APPAREL',
 ] as const;
 
-export const VIEWS = ['SHOP', 'GIFTS'] as const;
+export const VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
 
 export type ProductCategory = (typeof CATEGORIES)[number];
 export type ProductView = (typeof VIEWS)[number];
 export type LeafCategory = Exclude<ProductCategory, 'ALL'>;
-export type CatalogLine = 'SHOP' | 'GIFT';
+export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
 export const VIEW_LABELS: Record<ProductView, string> = {
-  SHOP: 'SHOP · ഷോപ്പ്',
-  GIFTS: 'GIFTS · സമ്മാനങ്ങൾ',
+  WOMEN: 'WOMEN · സ്ത്രീകൾ',
+  KIDS: 'KIDS · കുട്ടികൾ',
+  MEN: 'MEN · പുരുഷന്മാർ',
 };
 
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
@@ -87,7 +88,7 @@ export type StoreProduct = {
   price: number;
   salePrice?: number | null;
   qualityPrices?: QualityPriceMap;
-  /** SHOP or GIFTS catalog line (from parent category in admin) */
+  /** WOMEN / KIDS / MEN catalog line (from parent category in admin) */
   line: CatalogLine;
   category: LeafCategory;
   description: string;
@@ -171,8 +172,19 @@ function toCatalogLine(category?: PrismaCategoryShape | null): CatalogLine {
     .join(' ')
     .toUpperCase();
 
-  if (bits.includes('GIFT')) return 'GIFT';
-  return 'SHOP';
+  if (bits.includes('KID') || bits.includes('CHILD')) return 'KIDS';
+  if (bits.includes('MEN') || bits.includes('MALE') || bits.includes('MAN')) return 'MEN';
+  if (
+    bits.includes('WOMEN') ||
+    bits.includes('WOMAN') ||
+    bits.includes('LADIES') ||
+    bits.includes('GIRL')
+  ) {
+    return 'WOMEN';
+  }
+  // Legacy parents from older SHOP / GIFTS setup
+  if (bits.includes('GIFT')) return 'WOMEN';
+  return 'WOMEN';
 }
 
 function toCategory(input?: string | null): LeafCategory {
@@ -242,7 +254,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'malabar-pepper-jar',
     name: 'Malabar Black Pepper',
     price: 48,
-    line: 'SHOP',
+    line: 'WOMEN',
     category: 'SPICES',
     description: 'Whole peppercorns from the Malabar coast — fragrant, sharp, and pantry-ready.',
     material: 'Whole black pepper',
@@ -258,7 +270,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'cardamom-green-pods',
     name: 'Green Cardamom Pods',
     price: 62,
-    line: 'SHOP',
+    line: 'WOMEN',
     category: 'SPICES',
     description: 'Aromatic green cardamom for chai, sweets, and slow cooking.',
     material: 'Dried green cardamom',
@@ -273,7 +285,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'nilgiri-tea-tin',
     name: 'Nilgiri Leaf Tea',
     price: 54,
-    line: 'SHOP',
+    line: 'WOMEN',
     category: 'FOOD',
     description: 'High-grown leaf tea with a clean, floral cup — morning ritual ready.',
     material: 'Black tea leaves',
@@ -287,7 +299,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'kasavu-stole',
     name: 'Kasavu Stole',
     price: 186,
-    line: 'SHOP',
+    line: 'MEN',
     category: 'APPAREL',
     description: 'Handloom stole with classic golden border — light enough for everyday wear.',
     material: 'Cotton handloom',
@@ -302,7 +314,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'brass-nilavilakku',
     name: 'Brass Nilavilakku',
     price: 220,
-    line: 'GIFT',
+    line: 'MEN',
     category: 'HOME',
     description: 'Traditional brass lamp for home rituals and warm evening light.',
     material: 'Solid brass',
@@ -317,7 +329,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'coconut-oil-care',
     name: 'Virgin Coconut Oil',
     price: 72,
-    line: 'SHOP',
+    line: 'WOMEN',
     category: 'CARE',
     description: 'Cold-pressed coconut oil for hair, skin, and kitchen — pure and simple.',
     material: 'Virgin coconut oil',
@@ -331,7 +343,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'ayurvedic-soap-set',
     name: 'Ayurvedic Soap Trio',
     price: 58,
-    line: 'GIFT',
+    line: 'KIDS',
     category: 'CARE',
     description: 'Three gentle soaps with herbal blends — a small gift of everyday care.',
     material: 'Herbal soap base',
@@ -346,7 +358,7 @@ export const mockProducts: StoreProduct[] = [
     slug: 'coir-market-basket',
     name: 'Coir Market Basket',
     price: 95,
-    line: 'SHOP',
+    line: 'WOMEN',
     category: 'HOME',
     description: 'Handwoven coir basket for market runs and tidy storage at home.',
     material: 'Natural coir',
@@ -360,12 +372,10 @@ export const mockProducts: StoreProduct[] = [
 export function filterProducts(
   products: StoreProduct[],
   category = 'ALL',
-  view: ProductView = 'SHOP',
+  view: ProductView = 'WOMEN',
 ) {
   const selected = category.toUpperCase();
-  const line: CatalogLine = view === 'GIFTS' ? 'GIFT' : 'SHOP';
-
-  const byLine = products.filter((product) => product.line === line);
+  const byLine = products.filter((product) => product.line === view);
 
   const filtered =
     selected === 'ALL' ? byLine : byLine.filter((product) => product.category === selected);

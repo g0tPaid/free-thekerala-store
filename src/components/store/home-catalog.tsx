@@ -26,7 +26,7 @@ type HomeCatalogProps = {
 
 export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   const [category, setCategory] = useState<ProductCategory>('ALL');
-  const [view, setView] = useState<ProductView>('SHOP');
+  const [view, setView] = useState<ProductView>('WOMEN');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filtered = useMemo(() => {

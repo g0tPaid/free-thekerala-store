@@ -27,10 +27,11 @@ export default async function AdminCategoriesPage() {
         <p className="text-sm uppercase tracking-[0.25em] text-black/45">Catalog</p>
         <h1 className="mt-2 text-3xl font-semibold">Categories</h1>
         <p className="mt-2 text-sm text-black/55">
-          Use <span className="font-medium text-black">SHOP</span> and{" "}
-          <span className="font-medium text-black">GIFTS</span> as parent categories. Put products in
-          children (HOME, SPICES, FOOD, CARE, APPAREL) under the right parent — the home page Shop /
-          Gifts toggle follows that.
+          Use <span className="font-medium text-black">WOMEN</span>,{" "}
+          <span className="font-medium text-black">KIDS</span>, and{" "}
+          <span className="font-medium text-black">MEN</span> as parent categories. Put products in
+          children (HOME, SPICES, FOOD, CARE, APPAREL) under the right parent — the home toggles
+          follow that.
         </p>
       </div>
 

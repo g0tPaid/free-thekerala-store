@@ -181,37 +181,51 @@ async function main() {
     },
   });
 
-  const shop = await prisma.category.upsert({
-    where: { slug: "shop" },
+  const women = await prisma.category.upsert({
+    where: { slug: "women" },
     update: {
-      name: "SHOP",
+      name: "WOMEN",
       sortOrder: 0,
       isVisible: true,
       parentId: null,
     },
     create: {
-      name: "SHOP",
-      slug: "shop",
+      name: "WOMEN",
+      slug: "women",
       sortOrder: 0,
       isVisible: true,
     },
   });
 
-  const gifts = await prisma.category.upsert({
-    where: { slug: "gifts" },
+  const kids = await prisma.category.upsert({
+    where: { slug: "kids" },
     update: {
-      name: "GIFTS",
+      name: "KIDS",
       sortOrder: 1,
       isVisible: true,
       parentId: null,
-      description: "Thoughtful Kerala gifts — ഹൃദയപൂർവം സമ്മാനങ്ങൾ.",
     },
     create: {
-      name: "GIFTS",
-      slug: "gifts",
+      name: "KIDS",
+      slug: "kids",
       sortOrder: 1,
       isVisible: true,
-      description: "Thoughtful Kerala gifts — ഹൃദയപൂർവം സമ്മാനങ്ങൾ.",
+    },
+  });
+
+  const men = await prisma.category.upsert({
+    where: { slug: "men" },
+    update: {
+      name: "MEN",
+      sortOrder: 2,
+      isVisible: true,
+      parentId: null,
+    },
+    create: {
+      name: "MEN",
+      slug: "men",
+      sortOrder: 2,
+      isVisible: true,
     },
   });
 
@@ -222,32 +236,50 @@ async function main() {
         name: category.name,
         sortOrder: category.sortOrder,
         isVisible: true,
-        parentId: shop.id,
+        parentId: women.id,
       },
       create: {
         ...category,
         isVisible: true,
-        parentId: shop.id,
+        parentId: women.id,
       },
     });
   }
 
-  // Gift-line mirrors for care/home when needed
-  for (const slug of ["care", "home"]) {
+  for (const slug of ["care", "apparel"]) {
     await prisma.category.upsert({
-      where: { slug: `gift-${slug}` },
+      where: { slug: `kids-${slug}` },
       update: {
         name: slug.toUpperCase(),
-        sortOrder: slug === "home" ? 10 : 40,
+        sortOrder: slug === "apparel" ? 50 : 40,
         isVisible: true,
-        parentId: gifts.id,
+        parentId: kids.id,
       },
       create: {
         name: slug.toUpperCase(),
-        slug: `gift-${slug}`,
-        sortOrder: slug === "home" ? 10 : 40,
+        slug: `kids-${slug}`,
+        sortOrder: slug === "apparel" ? 50 : 40,
         isVisible: true,
-        parentId: gifts.id,
+        parentId: kids.id,
+      },
+    });
+  }
+
+  for (const slug of ["apparel", "home"]) {
+    await prisma.category.upsert({
+      where: { slug: `men-${slug}` },
+      update: {
+        name: slug.toUpperCase(),
+        sortOrder: slug === "apparel" ? 50 : 10,
+        isVisible: true,
+        parentId: men.id,
+      },
+      create: {
+        name: slug.toUpperCase(),
+        slug: `men-${slug}`,
+        sortOrder: slug === "apparel" ? 50 : 10,
+        isVisible: true,
+        parentId: men.id,
       },
     });
   }
