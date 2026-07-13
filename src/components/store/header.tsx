@@ -6,7 +6,7 @@ import { BrandLogo } from '@/components/store/brand-logo';
 import { useCart } from '@/lib/store';
 
 const navLabelClass =
-  'text-[10px] font-bold tracking-[0.18em] text-[#2f5a48]';
+  'text-[14px] font-bold tracking-[0.14em] text-[#2f5a48]';
 
 export function Header() {
   const open = useCart((state) => state.open);
