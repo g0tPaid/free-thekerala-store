@@ -36,7 +36,7 @@ export function SearchOverlay({ products }: SearchOverlayProps) {
           onClick={() => setOpen(true)}
           className="flex w-full items-center justify-between rounded-full border border-hairline bg-white/80 px-4 py-2 text-left text-[11px] uppercase tracking-[0.18em] text-muted"
         >
-          Search · തിരയുക
+          Search · എന്താ നോക്കുന്നേ?
           <Search className="size-4" />
         </button>
       </div>
