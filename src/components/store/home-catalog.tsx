@@ -71,8 +71,8 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
               LOAD MORE · കൂടുതൽ
             </button>
           ) : (
-            <p className="w-full border border-hairline px-5 py-4 text-center text-[11px] font-semibold tracking-[0.22em] text-muted">
-              END OF CATALOG · അവസാനം
+            <p className="w-full border border-hairline px-5 py-4 text-center font-ml text-[12px] font-semibold tracking-[0.08em] text-muted">
+              ഇതിനൊരു അവസാനല്ല
             </p>
           )}
         </div>
