@@ -23,6 +23,17 @@ const nextConfig: NextConfig = {
       { source: '/uploads/:path*', destination: '/api/media/:path*' },
     ];
   },
+  async headers() {
+    return [
+      {
+        // Avoid browsers keeping stale RSC / Server Action IDs after deploys
+        source: '/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
