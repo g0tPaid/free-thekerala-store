@@ -10,7 +10,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   APPAREL: 'APPAREL · വസ്ത്രം',
 };
 
-export const VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
+export const VIEWS = ['ALL', 'WOMEN', 'KIDS', 'MEN'] as const;
 
 export type ProductCategory = string;
 export type ProductView = (typeof VIEWS)[number];
@@ -18,6 +18,7 @@ export type LeafCategory = string;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
 export const VIEW_LABELS: Record<ProductView, string> = {
+  ALL: 'ALL · എല്ലാം',
   WOMEN: '🌸 ഓൾക്ക്',
   KIDS: '🧒 കുട്ട്യേൾക്ക്',
   MEN: '💙 ഓന്',
@@ -347,10 +348,11 @@ export const mockProducts: StoreProduct[] = [
 export function filterProducts(
   products: StoreProduct[],
   category = 'ALL',
-  view: ProductView = 'WOMEN',
+  view: ProductView = 'ALL',
 ) {
   const selected = category.toUpperCase();
-  const byLine = products.filter((product) => product.line === view);
+  const byLine =
+    view === 'ALL' ? products : products.filter((product) => product.line === view);
 
   const filtered =
     selected === 'ALL' ? byLine : byLine.filter((product) => product.category === selected);
@@ -365,7 +367,7 @@ export function filterProducts(
 export function categoriesForView(products: StoreProduct[], view: ProductView): ProductCategory[] {
   const found = new Set<string>();
   for (const product of products) {
-    if (product.line !== view) continue;
+    if (view !== 'ALL' && product.line !== view) continue;
     if (product.category) found.add(product.category.toUpperCase());
   }
   return ['ALL', ...Array.from(found).sort((a, b) => a.localeCompare(b))];

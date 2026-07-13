@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = (searchParams.get('category') || 'ALL') as ProductCategory;
-  const view = (searchParams.get('view') || 'WOMEN') as ProductView;
+  const view = (searchParams.get('view') || 'ALL') as ProductView;
   const page = Math.max(1, Number(searchParams.get('page') || 1));
   const limit = Math.min(48, Math.max(1, Number(searchParams.get('limit') || 24)));
   const idsParam = searchParams.get('ids');
