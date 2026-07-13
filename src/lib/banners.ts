@@ -102,15 +102,8 @@ export function resolveHomeBanners(input?: {
   ];
 
   const filled = custom.filter((slot) => Boolean(slot.imageUrl));
-  if (filled.length === 3) return filled;
-  if (filled.length > 0) {
-    const random = pickRandomBanners(3);
-    return custom.map((slot, index) =>
-      slot.imageUrl
-        ? slot
-        : { ...random[index], id: slot.id, href: slot.href },
-    );
-  }
+  // Only show admin-uploaded banners — don't mix random art that hides updates
+  if (filled.length > 0) return filled;
 
-  return pickRandomBanners(3);
+  return DEFAULT_HOME_BANNERS;
 }

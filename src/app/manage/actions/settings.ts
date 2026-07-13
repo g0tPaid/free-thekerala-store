@@ -60,3 +60,30 @@ export async function updateSettings(formData: FormData) {
   revalidatePath("/manage/settings");
   revalidatePath("/manage/settings#banners");
 }
+
+export async function saveBannerSlot(index: 1 | 2 | 3, imageUrl: string) {
+  await requireAdmin();
+  const url = imageUrl.trim();
+  if (!url) throw new Error("Banner URL is required.");
+
+  const data =
+    index === 1
+      ? { banner1Url: url }
+      : index === 2
+        ? { banner2Url: url }
+        : { banner3Url: url };
+
+  await prisma.siteSettings.upsert({
+    where: { id: "default" },
+    update: data,
+    create: {
+      id: "default",
+      siteName: "The Kerala Store",
+      currency: "INR",
+      ...data,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/manage/settings");
+}
