@@ -2,27 +2,26 @@ import { slugify } from '@/lib/utils';
 
 /** Storefront category pills — built from live catalog; these are display labels only */
 export const CATEGORY_LABELS: Record<string, string> = {
-  ALL: 'ALL · എല്ലാം',
-  HOME: 'HOME · വീട്',
-  SPICES: 'SPICES · മസാല',
-  FOOD: 'FOOD · ഭക്ഷണം',
-  CARE: 'CARE · പരിചരണം',
-  APPAREL: 'APPAREL · വസ്ത്രം',
+  ALL: 'ALL',
+  HOME: 'HOME',
+  SPICES: 'SPICES',
+  FOOD: 'FOOD',
+  CARE: 'CARE',
+  APPAREL: 'APPAREL',
 };
 
-export const AUDIENCE_VIEWS = ['WOMEN', 'KIDS', 'MEN'] as const;
-export const VIEWS = ['ALL', ...AUDIENCE_VIEWS] as const;
+export const VIEWS = ['ALL', 'WOMEN', 'KIDS', 'MEN'] as const;
 
 export type ProductCategory = string;
-export type AudienceView = (typeof AUDIENCE_VIEWS)[number];
 export type ProductView = (typeof VIEWS)[number];
 export type LeafCategory = string;
 export type CatalogLine = 'WOMEN' | 'KIDS' | 'MEN';
 
-export const VIEW_LABELS: Record<AudienceView, string> = {
-  WOMEN: '🌸 ഓൾക്ക്',
-  KIDS: '🧒 കുട്ട്യേൾക്ക്',
-  MEN: '💙 ഓന്',
+export const VIEW_LABELS: Record<ProductView, string> = {
+  ALL: 'ALL',
+  WOMEN: '🌸 WOMEN',
+  KIDS: '🧒 KIDS',
+  MEN: '💙 MEN',
 };
 
 export function categoryLabel(category: string) {
