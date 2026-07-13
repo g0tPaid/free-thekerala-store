@@ -128,7 +128,7 @@ function parseSelectedSizes(sizes: string[], mode: SizeMode) {
     const kidsSet = new Set<string>(KIDS_YEAR_SIZES);
     return sizes
       .map((size) => normalizeKidsYearLabel(size))
-      .filter((size): size is string => Boolean(size) && kidsSet.has(size));
+      .filter((size): size is string => size != null && kidsSet.has(size));
   }
 
   const selected = new Set(sizes.map((size) => size.trim().toUpperCase()));
