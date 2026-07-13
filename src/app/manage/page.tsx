@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LiveMetrics } from "@/components/admin/live-metrics";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -16,55 +17,37 @@ function money(value: number, currency = "INR") {
 export default async function AdminDashboardPage() {
   await requireAdmin();
 
-  const [productCount, orderCount, customerCount, revenue, settings, recentOrders, pendingOrders] =
-    await Promise.all([
-      prisma.product.count(),
-      prisma.order.count(),
-      prisma.user.count({ where: { role: "CUSTOMER" } }),
-      prisma.order.aggregate({
-        where: { status: { not: "CANCELLED" } },
-        _sum: { total: true },
-      }),
-      prisma.siteSettings.findUnique({ where: { id: "default" } }),
-      prisma.order.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          number: true,
-          customerName: true,
-          status: true,
-          total: true,
-          currency: true,
-          _count: { select: { items: true } },
-        },
-      }),
-      prisma.order.findMany({
-        where: { status: "PENDING" },
-        orderBy: { createdAt: "desc" },
-        take: 8,
-        select: {
-          id: true,
-          number: true,
-          customerName: true,
-          phone: true,
-          total: true,
-          currency: true,
-        },
-      }),
-    ]);
+  const [settings, recentOrders, pendingOrders] = await Promise.all([
+    prisma.siteSettings.findUnique({ where: { id: "default" } }),
+    prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        number: true,
+        customerName: true,
+        status: true,
+        total: true,
+        currency: true,
+        _count: { select: { items: true } },
+      },
+    }),
+    prisma.order.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: {
+        id: true,
+        number: true,
+        customerName: true,
+        phone: true,
+        total: true,
+        currency: true,
+      },
+    }),
+  ]);
 
   const currency = settings?.currency ?? "INR";
-  const cards = [
-    { label: "Products", value: productCount.toLocaleString(), href: "/manage/products" },
-    { label: "Orders", value: orderCount.toLocaleString(), href: "/manage/orders" },
-    { label: "Customers", value: customerCount.toLocaleString(), href: "/manage/customers" },
-    {
-      label: "Revenue",
-      value: money(Number(revenue._sum.total ?? 0), currency),
-      href: "/manage/orders",
-    },
-  ];
 
   return (
     <div className="space-y-8 text-blue-700">
@@ -72,6 +55,9 @@ export default async function AdminDashboardPage() {
         <div>
           <p className="text-sm uppercase tracking-[0.25em] text-blue-400">Overview</p>
           <h1 className="mt-2 text-3xl font-semibold text-blue-700">Dashboard</h1>
+          <p className="mt-2 text-sm text-blue-500">
+            Live traffic, orders, and store health for superadmin.
+          </p>
         </div>
         <Link
           href="/manage/products/new"
@@ -87,7 +73,8 @@ export default async function AdminDashboardPage() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">New order notification</p>
               <p className="mt-2 text-lg font-semibold">
-                {pendingOrders.length} pending order{pendingOrders.length === 1 ? "" : "s"} — contact for payment &amp; QC
+                {pendingOrders.length} pending order{pendingOrders.length === 1 ? "" : "s"} — contact
+                for payment &amp; QC
               </p>
             </div>
             <Link
@@ -114,18 +101,7 @@ export default async function AdminDashboardPage() {
         </section>
       ) : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <Link
-            key={card.label}
-            href={card.href}
-            className="border border-blue-200 bg-white p-5 shadow-sm transition hover:border-blue-400"
-          >
-            <p className="text-sm text-blue-400">{card.label}</p>
-            <p className="mt-4 text-3xl font-semibold text-blue-700">{card.value}</p>
-          </Link>
-        ))}
-      </section>
+      <LiveMetrics currency={currency} />
 
       <section className="border border-blue-200 bg-white">
         <div className="border-b border-blue-100 p-5">

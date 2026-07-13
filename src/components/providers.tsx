@@ -1,9 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { CartDrawer } from '@/components/store/cart-drawer';
+import { PageViewTracker } from '@/components/store/page-view-tracker';
 import { SiteShell } from '@/components/store/site-shell';
 import { WhatsAppOrderButton } from '@/components/store/whatsapp-order-button';
 
@@ -21,6 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <SiteShell>
+      <Suspense fallback={null}>
+        <PageViewTracker />
+      </Suspense>
       {children}
       <CartDrawer />
       {pathname === '/' ? <WhatsAppOrderButton /> : null}
