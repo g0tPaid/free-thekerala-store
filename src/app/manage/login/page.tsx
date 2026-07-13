@@ -1,12 +1,11 @@
 "use client";
 
-import { FormEvent, useState, Suspense } from "react";
+import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-function AdminLoginForm() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -16,11 +15,14 @@ function AdminLoginForm() {
     setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
+    const callbackUrl =
+      new URLSearchParams(window.location.search).get("callbackUrl") ?? "/manage";
+
     const result = await signIn("credentials", {
       email: formData.get("email"),
       password: formData.get("password"),
       redirect: false,
-      callbackUrl: searchParams.get("callbackUrl") ?? "/manage",
+      callbackUrl,
     });
 
     setIsSubmitting(false);
@@ -82,27 +84,5 @@ function AdminLoginForm() {
         </button>
       </form>
     </main>
-  );
-}
-
-function LoginFallback() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-6 text-black">
-      <div className="w-full max-w-sm border border-black/10 p-8 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50">
-          The Kerala Store
-        </p>
-        <h1 className="mt-3 text-2xl font-semibold">Admin login</h1>
-        <p className="mt-6 text-sm text-black/50">Loading…</p>
-      </div>
-    </main>
-  );
-}
-
-export default function AdminLoginPage() {
-  return (
-    <Suspense fallback={<LoginFallback />}>
-      <AdminLoginForm />
-    </Suspense>
   );
 }
