@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { type ProductView, VIEW_LABELS, VIEWS } from '@/lib/products';
 import { cn } from '@/lib/utils';
 
@@ -20,17 +19,12 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
             onClick={() => onChange(view)}
             className={cn(
               'relative z-10 rounded-full px-3 py-1 text-[9px] font-bold tracking-[0.12em] transition',
-              value === view ? 'text-white' : 'text-[#8a6a14]',
+              value === view
+                ? 'bg-[#e2b13c] text-white'
+                : 'bg-transparent text-[#8a6a14]',
             )}
           >
             {VIEW_LABELS[view]}
-            {value === view ? (
-              <motion.span
-                layoutId="view-toggle-indicator"
-                className="absolute inset-[2px] -z-10 rounded-full bg-[#e2b13c]"
-                transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-              />
-            ) : null}
           </button>
         ))}
       </div>
