@@ -24,6 +24,15 @@ const malayalam = Noto_Serif_Malayalam({
   weight: ['400', '500', '600', '700'],
 });
 
+function metadataBaseUrl() {
+  const raw = (process.env.NEXTAUTH_URL || 'https://thekerala.store').trim();
+  try {
+    return new URL(raw.includes('://') ? raw : `https://${raw}`);
+  } catch {
+    return new URL('https://thekerala.store');
+  }
+}
+
 export const metadata: Metadata = {
   title: {
     default: 'The Kerala Store',
@@ -31,7 +40,7 @@ export const metadata: Metadata = {
   },
   description:
     'Jewellery, beauty, spices and home — curated Kerala essentials. കേരളത്തിന്റെ മനോഹാരിത നിങ്ങളുടെ വാതിൽക്കൽ.',
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://thekerala.store'),
+  metadataBase: metadataBaseUrl(),
   openGraph: {
     title: 'The Kerala Store',
     description: 'Curated Kerala essentials — craft, spice, and everyday beauty.',

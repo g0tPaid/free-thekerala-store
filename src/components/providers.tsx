@@ -8,7 +8,7 @@ import { SiteShell } from '@/components/store/site-shell';
 import { WhatsAppOrderButton } from '@/components/store/whatsapp-order-button';
 
 export function Providers({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const isAdmin = pathname.startsWith('/admin');
 
   if (isAdmin) {
