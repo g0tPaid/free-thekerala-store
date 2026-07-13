@@ -96,11 +96,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
           </svg>
           <span className="font-ml text-[18px] font-semibold leading-tight">ഓടേ ന്റെ സാനം</span>
         </a>
-        <p className="text-center text-sm leading-6 text-muted">
-          Can&apos;t find what you need?
-        </p>
-        <p className="font-ml text-center text-sm text-muted">തിരയുന്നത് കണ്ടെത്തിയില്ലേ?</p>
-        <p className="mx-auto mt-4 max-w-[340px] border border-[#4f8f6e]/10 bg-white/80 px-4 py-2.5 text-center text-[11px] leading-5 text-muted">
+        <p className="mx-auto max-w-[340px] border border-[#4f8f6e]/10 bg-white/80 px-4 py-2.5 text-center text-[11px] leading-5 text-muted">
           Hidden coupon codes on the site — find one, message us, and unlock up to{' '}
           <span className="font-semibold text-[#3d6b58]">50% off</span> or{' '}
           <span className="font-semibold text-[#3d6b58]">free shipping</span>.
