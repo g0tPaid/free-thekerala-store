@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { AUDIENCE_VIEWS, type AudienceView, type ProductView } from '@/lib/products';
 import { cn } from '@/lib/utils';
 
@@ -11,14 +10,15 @@ type ViewToggleProps = {
 
 const VIEW_STYLES: Record<
   AudienceView,
-  { active: string; idle: string; border: string; mark: string; label: string }
+  { active: string; idle: string; border: string; mark: string; label: string; labelClass?: string }
 > = {
   WOMEN: {
-    active: 'bg-[#f9c5d1]',
-    idle: 'bg-[#fce7ec]',
+    active: 'bg-[#ec4899] text-white',
+    idle: 'bg-transparent text-[#be185d]',
     border: 'border-[#f9a8d4]',
     mark: '🌸',
-    label: 'WOMEN',
+    label: 'Women',
+    labelClass: 'audience-label-women',
   },
   KIDS: {
     active: 'bg-gradient-to-r from-[#ec4899] to-[#3b82f6] text-white',
@@ -50,38 +50,27 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         {AUDIENCE_VIEWS.map((view) => {
           const styles = VIEW_STYLES[view];
           const selected = value === view;
-          const isWomen = view === 'WOMEN';
-
           return (
             <button
               key={view}
               type="button"
-              aria-label={isWomen ? 'Women' : styles.label}
               onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'relative z-10 flex h-10 items-center justify-center overflow-hidden rounded-full px-1.5 transition',
-                !isWomen && selected && styles.active,
-                !isWomen && !selected && styles.idle,
-                isWomen && (selected ? 'ring-2 ring-[#ec4899] ring-inset' : 'opacity-90'),
+                'relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
+                selected ? styles.active : styles.idle,
               )}
             >
-              {isWomen ? (
-                <Image
-                  src="/labels/women-pill.png"
-                  alt=""
-                  width={320}
-                  height={80}
-                  priority
-                  className="h-full w-full object-cover object-center"
-                />
-              ) : (
-                <>
-                  <span className="text-[11px] leading-none" aria-hidden>
-                    {styles.mark}
-                  </span>
-                  <span className="audience-label text-[12px] leading-none">{styles.label}</span>
-                </>
-              )}
+              <span className="text-[11px] leading-none" aria-hidden>
+                {styles.mark}
+              </span>
+              <span
+                className={cn(
+                  styles.labelClass ?? 'audience-label',
+                  view === 'WOMEN' ? 'text-[15px] leading-none' : 'text-[12px] leading-none',
+                )}
+              >
+                {styles.label}
+              </span>
             </button>
           );
         })}

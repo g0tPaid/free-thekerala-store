@@ -81,7 +81,16 @@ a {
   font-family: var(--font-sans-family), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-/* WOMEN / KIDS / MEN — bold Playfair, distinct from UI sans + Malayalam */
+/* WOMEN — script label (matches brand artwork) */
+.audience-label-women {
+  font-family: var(--font-script), "Pacifico", cursive;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* KIDS / MEN — bold Playfair */
 .audience-label {
   font-family: var(--font-editorial), "Playfair Display", Georgia, serif;
   font-style: normal;

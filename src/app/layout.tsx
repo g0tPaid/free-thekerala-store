@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Serif_Malayalam, Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
+import { Noto_Serif_Malayalam, Pacifico, Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
@@ -15,6 +15,13 @@ const editorial = Playfair_Display({
   variable: '--font-editorial',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
+});
+
+const script = Pacifico({
+  subsets: ['latin'],
+  variable: '--font-script',
+  display: 'swap',
+  weight: ['400'],
 });
 
 const malayalam = Noto_Serif_Malayalam({
@@ -62,7 +69,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${editorial.variable} ${malayalam.variable} antialiased`}>
+      <body className={`${sans.variable} ${editorial.variable} ${script.variable} ${malayalam.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>
