@@ -6,12 +6,66 @@ import { redirect } from "next/navigation";
 import { ProductStatus } from "@/generated/prisma";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog";
 import { requireAdmin } from "@/lib/auth";
+import {
+  catalogLineFromCategory,
+  MAX_FEATURED_PER_LINE,
+  type CatalogLine,
+} from "@/lib/products";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedImage } from "@/lib/uploads";
 
 export type ProductActionState = {
   error?: string;
 };
+
+const categoryLineSelect = {
+  name: true,
+  slug: true,
+  parent: { select: { name: true, slug: true } },
+} as const;
+
+async function resolveCatalogLine(categoryId: string | null | undefined): Promise<CatalogLine> {
+  if (!categoryId) return "WOMEN";
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    select: categoryLineSelect,
+  });
+  return catalogLineFromCategory(category);
+}
+
+async function countFeaturedInLine(line: CatalogLine, excludeId?: string) {
+  const featured = await prisma.product.findMany({
+    where: {
+      featured: true,
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+    select: {
+      id: true,
+      category: { select: categoryLineSelect },
+    },
+  });
+  return featured.filter((product) => catalogLineFromCategory(product.category) === line).length;
+}
+
+async function featuredProductsInLine(line: CatalogLine) {
+  const featured = await prisma.product.findMany({
+    where: { featured: true },
+    select: {
+      id: true,
+      slug: true,
+      homepageOrder: true,
+      updatedAt: true,
+      createdAt: true,
+      category: { select: categoryLineSelect },
+    },
+    orderBy: [{ homepageOrder: "asc" }, { updatedAt: "desc" }, { createdAt: "asc" }],
+  });
+  return featured.filter((product) => catalogLineFromCategory(product.category) === line);
+}
+
+function lineLabel(line: CatalogLine) {
+  return line;
+}
 
 function stringValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -87,7 +141,8 @@ function productData(formData: FormData) {
     status: (stringValue(formData, "status") || "ACTIVE") as ProductStatus,
     featured: formData.get("featured") === "on",
     newArrival: formData.get("newArrival") === "on",
-    homepageOrder: optionalNumber(formData, "homepageOrder"),
+    // Slot order is owned by featured-slot tools
+    homepageOrder: null as number | null,
     categoryId: optionalString(formData, "categoryId"),
   };
 }
@@ -155,11 +210,26 @@ export async function createProduct(
   }
 
   try {
+    const wantsFeatured = data.featured;
+    if (wantsFeatured) {
+      const line = await resolveCatalogLine(data.categoryId);
+      const featuredCount = await countFeaturedInLine(line);
+      if (featuredCount >= MAX_FEATURED_PER_LINE) {
+        return {
+          error: `Already ${MAX_FEATURED_PER_LINE} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
+        };
+      }
+    }
+
     const product = await prisma.product.create({
-      data,
+      data: {
+        ...data,
+        homepageOrder: wantsFeatured ? MAX_FEATURED_PER_LINE + 1 : null,
+      },
     });
 
     await replaceProductMedia(product.id, formData);
+    await repairFeaturedSlots();
     bustCatalogCache(product.slug);
   } catch (error) {
     console.error("createProduct failed", error);
@@ -184,12 +254,27 @@ export async function updateProduct(
   }
 
   try {
+    const wantsFeatured = data.featured;
+    if (wantsFeatured) {
+      const line = await resolveCatalogLine(data.categoryId);
+      const featuredCount = await countFeaturedInLine(line, id);
+      if (featuredCount >= MAX_FEATURED_PER_LINE) {
+        return {
+          error: `Already ${MAX_FEATURED_PER_LINE} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
+        };
+      }
+    }
+
     await prisma.product.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        homepageOrder: wantsFeatured ? MAX_FEATURED_PER_LINE + 1 : null,
+      },
     });
 
     await replaceProductMedia(id, formData);
+    await repairFeaturedSlots();
     revalidatePath(`/manage/products/edit/${id}`);
     bustCatalogCache(data.slug);
   } catch (error) {
@@ -227,7 +312,53 @@ export async function deleteProduct(formData: FormData) {
   redirect("/manage/products");
 }
 
-const MAX_FEATURED = 6;
+const MAX_FEATURED = MAX_FEATURED_PER_LINE;
+
+/**
+ * Force featured products into unique slots 1…N per audience line (WOMEN / KIDS / MEN).
+ */
+export async function repairFeaturedSlots() {
+  const lines: CatalogLine[] = ["WOMEN", "KIDS", "MEN"];
+  let touched = false;
+
+  for (const line of lines) {
+    const featured = await featuredProductsInLine(line);
+    const keep = featured.slice(0, MAX_FEATURED);
+    const drop = featured.slice(MAX_FEATURED);
+    const alreadyClean =
+      drop.length === 0 &&
+      keep.every((product, index) => product.homepageOrder === index + 1);
+
+    if (alreadyClean) continue;
+    touched = true;
+
+    await prisma.$transaction([
+      ...drop.map((product) =>
+        prisma.product.update({
+          where: { id: product.id },
+          data: { featured: false, homepageOrder: null },
+        }),
+      ),
+      ...keep.map((product, index) =>
+        prisma.product.update({
+          where: { id: product.id },
+          data: {
+            featured: true,
+            homepageOrder: 1000 + index,
+          },
+        }),
+      ),
+      ...keep.map((product, index) =>
+        prisma.product.update({
+          where: { id: product.id },
+          data: { homepageOrder: index + 1 },
+        }),
+      ),
+    ]);
+  }
+
+  if (touched) bustCatalogCache();
+}
 
 export async function toggleFeaturedProduct(formData: FormData) {
   await requireAdmin();
@@ -237,30 +368,87 @@ export async function toggleFeaturedProduct(formData: FormData) {
 
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { id: true, featured: true, slug: true },
+    select: {
+      id: true,
+      featured: true,
+      slug: true,
+      category: { select: categoryLineSelect },
+    },
   });
 
   if (!product) return;
+
+  const line = catalogLineFromCategory(product.category);
 
   if (product.featured) {
     await prisma.product.update({
       where: { id },
       data: { featured: false, homepageOrder: null },
     });
+    await repairFeaturedSlots();
     bustCatalogCache(product.slug);
     redirect("/manage/products");
   }
 
-  const featuredCount = await prisma.product.count({ where: { featured: true } });
+  const featuredCount = await countFeaturedInLine(line);
   if (featuredCount >= MAX_FEATURED) {
-    redirect("/manage/products?featuredError=limit");
+    redirect(`/manage/products?featuredError=limit&line=${line}`);
   }
 
   await prisma.product.update({
     where: { id },
-    data: { featured: true, homepageOrder: featuredCount + 1 },
+    data: { featured: true, homepageOrder: 1000 },
   });
+  await repairFeaturedSlots();
 
   bustCatalogCache(product.slug);
+  redirect("/manage/products");
+}
+
+export async function moveFeaturedProduct(formData: FormData) {
+  await requireAdmin();
+
+  const id = stringValue(formData, "id");
+  const direction = stringValue(formData, "direction");
+  if (!id || (direction !== "up" && direction !== "down")) return;
+
+  const current = await prisma.product.findUnique({
+    where: { id },
+    select: { id: true, category: { select: categoryLineSelect } },
+  });
+  if (!current) return;
+
+  const line = catalogLineFromCategory(current.category);
+  const featured = await featuredProductsInLine(line);
+
+  const index = featured.findIndex((product) => product.id === id);
+  if (index < 0) return;
+
+  const swapWith = direction === "up" ? index - 1 : index + 1;
+  if (swapWith < 0 || swapWith >= featured.length) {
+    redirect("/manage/products");
+  }
+
+  const ordered = featured.map((product) => product.id);
+  const tmp = ordered[index];
+  ordered[index] = ordered[swapWith];
+  ordered[swapWith] = tmp;
+
+  await prisma.$transaction([
+    ...ordered.map((productId, orderIndex) =>
+      prisma.product.update({
+        where: { id: productId },
+        data: { homepageOrder: 1000 + orderIndex },
+      }),
+    ),
+    ...ordered.map((productId, orderIndex) =>
+      prisma.product.update({
+        where: { id: productId },
+        data: { homepageOrder: orderIndex + 1 },
+      }),
+    ),
+  ]);
+
+  bustCatalogCache(featured[index]?.slug);
   redirect("/manage/products");
 }

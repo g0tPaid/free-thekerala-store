@@ -98,6 +98,8 @@ export type StoreProduct = {
   /** Ordered gallery (cover = first image) */
   images: string[];
   featured?: boolean;
+  /** Featured slot 1–3 within this audience line (WOMEN / KIDS / MEN) */
+  homepageOrder?: number | null;
   newArrival?: boolean;
 };
 
@@ -133,6 +135,7 @@ export type PrismaProductShape = {
   colors?: string[] | null;
   tags?: string[] | null;
   featured?: boolean | null;
+  homepageOrder?: number | null;
   newArrival?: boolean | null;
   category?: PrismaCategoryShape | null;
   media?: PrismaMediaShape[] | null;
@@ -158,6 +161,13 @@ function toNumber(value: DecimalLike) {
   if (value === null || value === undefined) return 0;
   const parsed = Number(typeof value === 'object' ? value.toString() : value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Max featured homepage slots per audience line (WOMEN / KIDS / MEN each). */
+export const MAX_FEATURED_PER_LINE = 3;
+
+export function catalogLineFromCategory(category?: PrismaCategoryShape | null): CatalogLine {
+  return toCatalogLine(category);
 }
 
 function toCatalogLine(category?: PrismaCategoryShape | null): CatalogLine {
@@ -222,6 +232,10 @@ export function mapPrismaProductToStore(product: PrismaProductShape): StoreProdu
     tags: product.tags ?? [],
     images: gallery.length ? gallery : [fallback],
     featured: Boolean(product.featured),
+    homepageOrder:
+      typeof product.homepageOrder === 'number' && Number.isFinite(product.homepageOrder)
+        ? product.homepageOrder
+        : null,
     newArrival: Boolean(product.newArrival),
   };
 }

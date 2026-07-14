@@ -1,6 +1,11 @@
 import { unstable_cache } from 'next/cache';
 import { ProductStatus } from '@/generated/prisma';
-import { mapPrismaProductToStore, type StoreProduct } from '@/lib/products';
+import {
+  mapPrismaProductToStore,
+  MAX_FEATURED_PER_LINE,
+  type CatalogLine,
+  type StoreProduct,
+} from '@/lib/products';
 import { prisma } from '@/lib/prisma';
 
 export const CATALOG_CACHE_TAG = 'catalog';
@@ -19,6 +24,7 @@ type CatalogRow = {
   colors: unknown;
   tags: unknown;
   featured: boolean;
+  homepageOrder: number | null;
   newArrival: boolean;
   categoryId?: string | null;
   category: {
@@ -76,6 +82,7 @@ const listSelect = {
   colors: true,
   tags: true,
   featured: true,
+  homepageOrder: true,
   newArrival: true,
   categoryId: true,
   category: categorySelect,
@@ -100,7 +107,41 @@ async function loadActiveProducts(): Promise<StoreProduct[]> {
     orderBy: [{ featured: 'desc' }, { homepageOrder: 'asc' }, { createdAt: 'desc' }],
   } as never)) as unknown as CatalogRow[];
 
-  return products.map(normalizeProduct);
+  const mapped = products.map(normalizeProduct);
+  const lines: CatalogLine[] = ['WOMEN', 'KIDS', 'MEN'];
+  const rankById = new Map<string, number>();
+
+  for (const line of lines) {
+    const featuredSorted = mapped
+      .filter((product) => product.featured && product.line === line)
+      .sort((a, b) => {
+        const aOrder = a.homepageOrder ?? 999;
+        const bOrder = b.homepageOrder ?? 999;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, MAX_FEATURED_PER_LINE);
+
+    featuredSorted.forEach((product, index) => {
+      rankById.set(product.id, index + 1);
+    });
+  }
+
+  return mapped
+    .map((product) => {
+      const rank = rankById.get(product.id);
+      if (rank == null) {
+        return { ...product, featured: false, homepageOrder: null };
+      }
+      return { ...product, featured: true, homepageOrder: rank };
+    })
+    .sort((a, b) => {
+      if (a.featured && b.featured) {
+        return (a.homepageOrder ?? 999) - (b.homepageOrder ?? 999);
+      }
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
+      return 0;
+    });
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {

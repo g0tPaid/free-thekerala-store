@@ -776,17 +776,12 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium" htmlFor="homepageOrder">
-            Homepage order
-          </label>
-          <input
-            id="homepageOrder"
-            name="homepageOrder"
-            type="number"
-            defaultValue={fieldValue(product?.homepageOrder)}
-            className="mt-2 w-full border border-black/15 px-3 py-2 outline-none focus:border-black"
-          />
+        <div className="sm:col-span-2">
+          <p className="text-sm font-medium">Featured slots</p>
+          <p className="mt-1 text-sm text-black/55">
+            Order is managed on the Products page — each of WOMEN / KIDS / MEN has 3 slots. Checking
+            Featured here fills the next open slot for this product&apos;s audience line.
+          </p>
         </div>
 
         <label className="flex items-center gap-2 text-sm">

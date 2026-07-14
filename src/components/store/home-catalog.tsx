@@ -39,8 +39,13 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
     return filterProducts(catalog, category, view)
       .slice()
       .sort((a, b) => {
-        if (Boolean(a.featured) === Boolean(b.featured)) return 0;
-        return a.featured ? -1 : 1;
+        const aFeatured = Boolean(a.featured);
+        const bFeatured = Boolean(b.featured);
+        if (aFeatured && bFeatured) {
+          return (a.homepageOrder ?? 999) - (b.homepageOrder ?? 999);
+        }
+        if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
+        return 0;
       });
   }, [catalog, category, view]);
 
