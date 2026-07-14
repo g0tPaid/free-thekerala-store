@@ -81,22 +81,13 @@ a {
   font-family: var(--font-sans-family), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-/* WOMEN — script label (matches brand artwork) */
-.audience-label-women {
+/* WOMEN / KIDS / MEN — script labels (matches brand artwork) */
+.audience-label-script {
   font-family: var(--font-script), "Pacifico", cursive;
   font-style: normal;
   font-weight: 400;
   letter-spacing: 0.02em;
   text-transform: none;
-}
-
-/* KIDS / MEN — bold Playfair */
-.audience-label {
-  font-family: var(--font-editorial), "Playfair Display", Georgia, serif;
-  font-style: normal;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
 }
 
 .no-scrollbar {

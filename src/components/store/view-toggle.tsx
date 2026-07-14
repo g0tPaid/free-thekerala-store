@@ -10,7 +10,7 @@ type ViewToggleProps = {
 
 const VIEW_STYLES: Record<
   AudienceView,
-  { active: string; idle: string; border: string; mark: string; label: string; labelClass?: string }
+  { active: string; idle: string; border: string; mark: string; label: string }
 > = {
   WOMEN: {
     active: 'bg-[#ec4899] text-white',
@@ -18,21 +18,20 @@ const VIEW_STYLES: Record<
     border: 'border-[#f9a8d4]',
     mark: '🌸',
     label: 'Women',
-    labelClass: 'audience-label-women',
   },
   KIDS: {
     active: 'bg-gradient-to-r from-[#ec4899] to-[#3b82f6] text-white',
     idle: 'bg-transparent text-[#7c3aed]',
     border: 'border-[#c4b5fd]',
     mark: '🧒',
-    label: 'KIDS',
+    label: 'Kids',
   },
   MEN: {
     active: 'bg-[#2563eb] text-white',
     idle: 'bg-transparent text-[#1d4ed8]',
     border: 'border-[#93c5fd]',
     mark: '💙',
-    label: 'MEN',
+    label: 'Men',
   },
 };
 
@@ -63,14 +62,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
               <span className="text-[11px] leading-none" aria-hidden>
                 {styles.mark}
               </span>
-              <span
-                className={cn(
-                  styles.labelClass ?? 'audience-label',
-                  view === 'WOMEN' ? 'text-[15px] leading-none' : 'text-[12px] leading-none',
-                )}
-              >
-                {styles.label}
-              </span>
+              <span className="audience-label-script text-[15px] leading-none">{styles.label}</span>
             </button>
           );
         })}
