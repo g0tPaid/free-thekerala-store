@@ -23,7 +23,7 @@ export function CategoryNav({ categories, value, onChange }: CategoryNavProps) {
           type="button"
           onClick={() => onChange(category)}
           className={cn(
-            'shrink-0 rounded-full border px-3 py-1 text-[9px] font-bold tracking-[0.12em] transition',
+            'flex h-10 shrink-0 items-center rounded-full border px-3 text-[9px] font-bold tracking-[0.12em] transition',
             value === category
               ? 'border-[#4f8f6e] bg-[#4f8f6e]/12 text-[#3d6b58]'
               : 'border-black/20 bg-white text-black hover:border-[#4f8f6e]/60',

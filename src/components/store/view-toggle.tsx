@@ -55,7 +55,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
               type="button"
               onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'relative z-10 flex items-center justify-center gap-1 rounded-full px-1.5 py-2 transition',
+                'relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
                 selected ? styles.active : styles.idle,
               )}
             >

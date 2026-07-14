@@ -81,11 +81,11 @@ a {
   font-family: var(--font-sans-family), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-/* WOMEN / KIDS / MEN — editorial display, distinct from UI sans + Malayalam */
+/* WOMEN / KIDS / MEN — bold Playfair, distinct from UI sans + Malayalam */
 .audience-label {
   font-family: var(--font-editorial), "Playfair Display", Georgia, serif;
-  font-style: italic;
-  font-weight: 600;
+  font-style: normal;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.18em;
 }
