@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
+import { ImageCropDialog } from '@/components/admin/image-crop-dialog';
 import { cn } from '@/lib/utils';
 
 export type GalleryItem = {
@@ -16,7 +17,15 @@ type ProductImageGalleryProps = {
   max?: number;
 };
 
+type CropJob = {
+  src: string;
+  fileName: string;
+  revokeOnClose: boolean;
+};
+
 const MAX_BYTES = 8 * 1024 * 1024;
+/** Matches product cards / gallery tiles */
+const PRODUCT_ASPECT = 4 / 5;
 
 function makeKey() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -37,6 +46,9 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
   const bulkId = useId();
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [queue, setQueue] = useState<CropJob[]>([]);
+  const [replaceKey, setReplaceKey] = useState<string | null>(null);
+  const activeCrop = queue[0] ?? null;
 
   useEffect(() => {
     return () => {
@@ -52,45 +64,87 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     onChange(next.slice(0, max));
   }
 
-  function addFiles(fileList: FileList | File[]) {
+  function enqueueFiles(fileList: FileList | File[]) {
     const incoming = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
     if (!incoming.length) return;
 
-    const room = max - items.length;
+    const room = max - items.length - queue.length;
     if (room <= 0) {
       setError(`You already have ${max} images.`);
       return;
     }
 
-    const accepted: GalleryItem[] = [];
+    const jobs: CropJob[] = [];
     for (const file of incoming.slice(0, room)) {
       if (file.size > MAX_BYTES) {
         setError(`${file.name} is larger than 8MB.`);
         continue;
       }
-      accepted.push(createGalleryItem({ file, preview: URL.createObjectURL(file) }));
+      jobs.push({
+        src: URL.createObjectURL(file),
+        fileName: file.name,
+        revokeOnClose: true,
+      });
     }
 
     if (incoming.length > room) {
       setError(`Only ${room} more image${room === 1 ? '' : 's'} can be added (max ${max}).`);
-    } else if (accepted.length) {
+    } else if (jobs.length) {
       setError('');
     }
 
-    if (accepted.length) {
-      setItems([...items, ...accepted]);
+    if (jobs.length) setQueue((current) => [...current, ...jobs]);
+  }
+
+  function releaseJob(job: CropJob) {
+    if (job.revokeOnClose && job.src.startsWith('blob:')) {
+      URL.revokeObjectURL(job.src);
     }
   }
 
+  function dismissActiveCrop() {
+    setReplaceKey(null);
+    setQueue((current) => {
+      const [first, ...rest] = current;
+      if (first) releaseJob(first);
+      return rest;
+    });
+  }
+
+  function finishCrop(file: File) {
+    const preview = URL.createObjectURL(file);
+    const cropped = createGalleryItem({ file, preview });
+    if (replaceKey) {
+      setItems(
+        items.map((item) => {
+          if (item.key !== replaceKey) return item;
+          if (item.preview.startsWith('blob:') && item.preview !== preview) {
+            URL.revokeObjectURL(item.preview);
+          }
+          return cropped;
+        }),
+      );
+    } else {
+      setItems([...items, cropped]);
+    }
+    setReplaceKey(null);
+    setQueue((current) => {
+      const [first, ...rest] = current;
+      if (first) releaseJob(first);
+      return rest;
+    });
+    setError('');
+  }
+
   function handleBulk(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.files?.length) addFiles(event.target.files);
+    if (event.target.files?.length) enqueueFiles(event.target.files);
     event.target.value = '';
   }
 
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragging(false);
-    if (event.dataTransfer.files?.length) addFiles(event.dataTransfer.files);
+    if (event.dataTransfer.files?.length) enqueueFiles(event.dataTransfer.files);
   }
 
   function removeAt(index: number) {
@@ -117,6 +171,19 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     setItems(next);
   }
 
+  function startRecrop(item: GalleryItem) {
+    if (!item.preview) return;
+    setReplaceKey(item.key);
+    setQueue((current) => [
+      ...current,
+      {
+        src: item.preview,
+        fileName: item.file?.name || 'product.jpg',
+        revokeOnClose: false,
+      },
+    ]);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -135,11 +202,16 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           className="sr-only"
         />
         <p className="text-sm text-black/55">
-          {items.length}/{max} · select many at once · first = cover
+          {items.length}/{max} · crop after pick · first = cover
         </p>
       </div>
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {queue.length > 1 ? (
+        <p className="text-sm text-[#4f8f6e]">
+          Cropping {queue.length} images — finish this one, then the next opens.
+        </p>
+      ) : null}
 
       <div
         onDragEnter={(event) => {
@@ -161,9 +233,12 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
         )}
       >
         <p className="text-sm text-black/60">
-          Drag &amp; drop up to {max} images here, or use <span className="font-medium text-black">Choose multiple photos</span>
+          Drag &amp; drop up to {max} images here, or use{' '}
+          <span className="font-medium text-black">Choose multiple photos</span>
         </p>
-        <p className="mt-1 text-xs text-black/45">On desktop: Ctrl/Cmd + click to pick several files in one go</p>
+        <p className="mt-1 text-xs text-black/45">
+          Each photo opens a crop frame (4:5 product ratio) before it joins the gallery
+        </p>
       </div>
 
       {items.length ? (
@@ -195,6 +270,13 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
                   ) : null}
                   <button
                     type="button"
+                    onClick={() => startRecrop(item)}
+                    className="border border-black/15 px-2 py-1 text-[10px] font-semibold tracking-[0.12em]"
+                  >
+                    CROP
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => move(index, -1)}
                     disabled={index === 0}
                     className="border border-black/15 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] disabled:opacity-30"
@@ -223,6 +305,19 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
             </div>
           ))}
         </div>
+      ) : null}
+
+      {activeCrop ? (
+        <ImageCropDialog
+          open
+          imageSrc={activeCrop.src}
+          fileName={activeCrop.fileName}
+          aspect={PRODUCT_ASPECT}
+          title={queue.length > 1 ? `Crop photo · ${queue.length} left` : 'Crop product photo'}
+          hint="Frame the product — 4:5 matches the shop cards. Drag to reposition, zoom if needed."
+          onCancel={dismissActiveCrop}
+          onComplete={finishCrop}
+        />
       ) : null}
     </div>
   );

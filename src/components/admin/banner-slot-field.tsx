@@ -2,12 +2,15 @@
 
 import { useRef, useState, useTransition } from 'react';
 import { saveBannerSlot } from '@/app/manage/actions/settings';
+import { ImageCropDialog } from '@/components/admin/image-crop-dialog';
 
 type BannerSlotFieldProps = {
   index: 1 | 2 | 3;
   defaultUrl?: string | null;
   defaultLink?: string | null;
 };
+
+const BANNER_ASPECT = 12 / 5;
 
 function uploadWithProgress(file: File, onProgress: (pct: number) => void) {
   return new Promise<string>((resolve, reject) => {
@@ -46,6 +49,8 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [pending, startTransition] = useTransition();
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropName, setCropName] = useState('banner.jpg');
 
   const busy = progress !== null || pending;
 
@@ -71,10 +76,22 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
     });
   }
 
-  async function onFile(file: File | null) {
+  function onPick(file: File | null) {
     if (!file) return;
     setError('');
     setSaved(false);
+    if (cropSrc?.startsWith('blob:')) URL.revokeObjectURL(cropSrc);
+    setCropName(file.name);
+    setCropSrc(URL.createObjectURL(file));
+  }
+
+  function closeCrop() {
+    if (cropSrc?.startsWith('blob:')) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  }
+
+  async function onCropped(file: File) {
+    closeCrop();
     setProgress(0);
     setPhase('Uploading…');
     try {
@@ -174,7 +191,7 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
             className="sr-only"
             disabled={busy}
             onChange={(event) => {
-              void onFile(event.target.files?.[0] ?? null);
+              onPick(event.target.files?.[0] ?? null);
               event.target.value = '';
             }}
           />
@@ -183,12 +200,27 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
           <p className="text-xs font-medium text-[#4f8f6e]">Saved — live on homepage now.</p>
         ) : !busy ? (
           <p className="text-xs text-black/50">
-            Exact size: <span className="font-medium text-black">1200 × 500 px</span> (12:5). Uploads
-            save immediately.
+            Exact size: <span className="font-medium text-black">1200 × 500 px</span> (12:5). Crop
+            opens first, then uploads save immediately.
           </p>
         ) : null}
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
+
+      {cropSrc ? (
+        <ImageCropDialog
+          open
+          imageSrc={cropSrc}
+          fileName={cropName}
+          aspect={BANNER_ASPECT}
+          title={`Crop banner ${index}`}
+          hint="12:5 frame matches the homepage banner. Drag to frame, zoom if needed."
+          onCancel={closeCrop}
+          onComplete={(file) => {
+            void onCropped(file);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
