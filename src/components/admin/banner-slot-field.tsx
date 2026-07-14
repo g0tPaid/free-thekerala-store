@@ -49,8 +49,7 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [pending, startTransition] = useTransition();
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [cropName, setCropName] = useState('banner.jpg');
+  const [cropOpen, setCropOpen] = useState(false);
 
   const busy = progress !== null || pending;
 
@@ -76,22 +75,9 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
     });
   }
 
-  function onPick(file: File | null) {
-    if (!file) return;
+  async function uploadAndSave(file: File) {
     setError('');
     setSaved(false);
-    if (cropSrc?.startsWith('blob:')) URL.revokeObjectURL(cropSrc);
-    setCropName(file.name);
-    setCropSrc(URL.createObjectURL(file));
-  }
-
-  function closeCrop() {
-    if (cropSrc?.startsWith('blob:')) URL.revokeObjectURL(cropSrc);
-    setCropSrc(null);
-  }
-
-  async function onCropped(file: File) {
-    closeCrop();
     setProgress(0);
     setPhase('Uploading…');
     try {
@@ -133,8 +119,7 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
           disabled={busy}
           onClick={() => {
             setError('');
-            setCropName(`banner-${index}.jpg`);
-            setCropSrc(url);
+            setCropOpen(true);
           }}
           className="w-full bg-[#4f8f6e] px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white disabled:opacity-50"
         >
@@ -205,7 +190,8 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
             className="sr-only"
             disabled={busy}
             onChange={(event) => {
-              onPick(event.target.files?.[0] ?? null);
+              const file = event.target.files?.[0] ?? null;
+              if (file) void uploadAndSave(file);
               event.target.value = '';
             }}
           />
@@ -214,24 +200,25 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
           <p className="text-xs font-medium text-[#4f8f6e]">Saved — live on homepage now.</p>
         ) : !busy ? (
           <p className="text-xs text-black/50">
-            Exact size: <span className="font-medium text-black">1200 × 500 px</span> (12:5). Crop
-            opens first, then uploads save immediately.
+            Exact size: <span className="font-medium text-black">1200 × 500 px</span> (12:5). Uploads
+            save immediately — crop later with EDIT · CROP.
           </p>
         ) : null}
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
-      {cropSrc ? (
+      {cropOpen && url ? (
         <ImageCropDialog
           open
-          imageSrc={cropSrc}
-          fileName={cropName}
+          imageSrc={url}
+          fileName={`banner-${index}.jpg`}
           aspect={BANNER_ASPECT}
           title={`Crop banner ${index}`}
           hint="12:5 frame matches the homepage banner. Drag to frame, zoom if needed."
-          onCancel={closeCrop}
+          onCancel={() => setCropOpen(false)}
           onComplete={(file) => {
-            void onCropped(file);
+            setCropOpen(false);
+            void uploadAndSave(file);
           }}
         />
       ) : null}

@@ -17,12 +17,6 @@ type ProductImageGalleryProps = {
   max?: number;
 };
 
-type CropJob = {
-  src: string;
-  fileName: string;
-  revokeOnClose: boolean;
-};
-
 const MAX_BYTES = 8 * 1024 * 1024;
 /** Matches product cards / gallery tiles */
 const PRODUCT_ASPECT = 4 / 5;
@@ -46,9 +40,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
   const bulkId = useId();
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
-  const [queue, setQueue] = useState<CropJob[]>([]);
-  const [replaceKey, setReplaceKey] = useState<string | null>(null);
-  const activeCrop = queue[0] ?? null;
+  const [cropping, setCropping] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
     return () => {
@@ -64,87 +56,45 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     onChange(next.slice(0, max));
   }
 
-  function enqueueFiles(fileList: FileList | File[]) {
+  function addFiles(fileList: FileList | File[]) {
     const incoming = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
     if (!incoming.length) return;
 
-    const room = max - items.length - queue.length;
+    const room = max - items.length;
     if (room <= 0) {
       setError(`You already have ${max} images.`);
       return;
     }
 
-    const jobs: CropJob[] = [];
+    const accepted: GalleryItem[] = [];
     for (const file of incoming.slice(0, room)) {
       if (file.size > MAX_BYTES) {
         setError(`${file.name} is larger than 8MB.`);
         continue;
       }
-      jobs.push({
-        src: URL.createObjectURL(file),
-        fileName: file.name,
-        revokeOnClose: true,
-      });
+      accepted.push(createGalleryItem({ file, preview: URL.createObjectURL(file) }));
     }
 
     if (incoming.length > room) {
       setError(`Only ${room} more image${room === 1 ? '' : 's'} can be added (max ${max}).`);
-    } else if (jobs.length) {
+    } else if (accepted.length) {
       setError('');
     }
 
-    if (jobs.length) setQueue((current) => [...current, ...jobs]);
-  }
-
-  function releaseJob(job: CropJob) {
-    if (job.revokeOnClose && job.src.startsWith('blob:')) {
-      URL.revokeObjectURL(job.src);
+    if (accepted.length) {
+      setItems([...items, ...accepted]);
     }
-  }
-
-  function dismissActiveCrop() {
-    setReplaceKey(null);
-    setQueue((current) => {
-      const [first, ...rest] = current;
-      if (first) releaseJob(first);
-      return rest;
-    });
-  }
-
-  function finishCrop(file: File) {
-    const preview = URL.createObjectURL(file);
-    const cropped = createGalleryItem({ file, preview });
-    if (replaceKey) {
-      setItems(
-        items.map((item) => {
-          if (item.key !== replaceKey) return item;
-          if (item.preview.startsWith('blob:') && item.preview !== preview) {
-            URL.revokeObjectURL(item.preview);
-          }
-          return cropped;
-        }),
-      );
-    } else {
-      setItems([...items, cropped]);
-    }
-    setReplaceKey(null);
-    setQueue((current) => {
-      const [first, ...rest] = current;
-      if (first) releaseJob(first);
-      return rest;
-    });
-    setError('');
   }
 
   function handleBulk(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.files?.length) enqueueFiles(event.target.files);
+    if (event.target.files?.length) addFiles(event.target.files);
     event.target.value = '';
   }
 
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragging(false);
-    if (event.dataTransfer.files?.length) enqueueFiles(event.dataTransfer.files);
+    if (event.dataTransfer.files?.length) addFiles(event.dataTransfer.files);
   }
 
   function removeAt(index: number) {
@@ -171,17 +121,22 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     setItems(next);
   }
 
-  function startRecrop(item: GalleryItem) {
-    if (!item.preview) return;
-    setReplaceKey(item.key);
-    setQueue((current) => [
-      ...current,
-      {
-        src: item.preview,
-        fileName: item.file?.name || 'product.jpg',
-        revokeOnClose: false,
-      },
-    ]);
+  function finishCrop(file: File) {
+    if (!cropping) return;
+    const key = cropping.key;
+    const preview = URL.createObjectURL(file);
+    const cropped = createGalleryItem({ file, preview });
+    setItems(
+      items.map((item) => {
+        if (item.key !== key) return item;
+        if (item.preview.startsWith('blob:') && item.preview !== preview) {
+          URL.revokeObjectURL(item.preview);
+        }
+        return cropped;
+      }),
+    );
+    setCropping(null);
+    setError('');
   }
 
   return (
@@ -202,16 +157,11 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           className="sr-only"
         />
         <p className="text-sm text-black/55">
-          {items.length}/{max} · crop after pick · first = cover
+          {items.length}/{max} · first = cover · crop only when you tap EDIT
         </p>
       </div>
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {queue.length > 1 ? (
-        <p className="text-sm text-[#4f8f6e]">
-          Cropping {queue.length} images — finish this one, then the next opens.
-        </p>
-      ) : null}
 
       <div
         onDragEnter={(event) => {
@@ -237,7 +187,8 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           <span className="font-medium text-black">Choose multiple photos</span>
         </p>
         <p className="mt-1 text-xs text-black/45">
-          Each photo opens a crop frame (4:5 product ratio) before it joins the gallery
+          Photos add as-is. Use <span className="font-medium text-black">EDIT · CROP</span> under any
+          picture when you want to crop.
         </p>
       </div>
 
@@ -258,7 +209,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
               <div className="space-y-2 border-t border-black/10 p-3">
                 <button
                   type="button"
-                  onClick={() => startRecrop(item)}
+                  onClick={() => setCropping(item)}
                   className="w-full bg-[#4f8f6e] px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white"
                 >
                   EDIT · CROP
@@ -308,15 +259,15 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
         </div>
       ) : null}
 
-      {activeCrop ? (
+      {cropping ? (
         <ImageCropDialog
           open
-          imageSrc={activeCrop.src}
-          fileName={activeCrop.fileName}
+          imageSrc={cropping.preview}
+          fileName={cropping.file?.name || 'product.jpg'}
           aspect={PRODUCT_ASPECT}
-          title={queue.length > 1 ? `Crop photo · ${queue.length} left` : 'Crop product photo'}
+          title="Crop product photo"
           hint="Frame the product — 4:5 matches the shop cards. Drag to reposition, zoom if needed."
-          onCancel={dismissActiveCrop}
+          onCancel={() => setCropping(null)}
           onComplete={finishCrop}
         />
       ) : null}
