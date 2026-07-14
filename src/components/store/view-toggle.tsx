@@ -1,6 +1,6 @@
 'use client';
 
-import { AUDIENCE_VIEWS, type AudienceView, type ProductView, VIEW_LABELS } from '@/lib/products';
+import { AUDIENCE_VIEWS, type AudienceView, type ProductView } from '@/lib/products';
 import { cn } from '@/lib/utils';
 
 type ViewToggleProps = {
@@ -10,22 +10,28 @@ type ViewToggleProps = {
 
 const VIEW_STYLES: Record<
   AudienceView,
-  { active: string; idle: string; border: string }
+  { active: string; idle: string; border: string; mark: string; label: string }
 > = {
   WOMEN: {
     active: 'bg-[#ec4899] text-white',
     idle: 'bg-transparent text-[#be185d]',
     border: 'border-[#f9a8d4]',
+    mark: '🌸',
+    label: 'WOMEN',
   },
   KIDS: {
     active: 'bg-gradient-to-r from-[#ec4899] to-[#3b82f6] text-white',
     idle: 'bg-transparent text-[#7c3aed]',
     border: 'border-[#c4b5fd]',
+    mark: '🧒',
+    label: 'KIDS',
   },
   MEN: {
     active: 'bg-[#2563eb] text-white',
     idle: 'bg-transparent text-[#1d4ed8]',
     border: 'border-[#93c5fd]',
+    mark: '💙',
+    label: 'MEN',
   },
 };
 
@@ -49,11 +55,16 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
               type="button"
               onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'relative z-10 rounded-full px-1.5 py-1.5 font-ml text-[10px] font-bold leading-tight tracking-normal transition',
+                'relative z-10 flex items-center justify-center gap-1 rounded-full px-1.5 py-2 transition',
                 selected ? styles.active : styles.idle,
               )}
             >
-              {VIEW_LABELS[view]}
+              <span className="text-[11px] leading-none" aria-hidden>
+                {styles.mark}
+              </span>
+              <span className="audience-label text-[12px] leading-none">
+                {styles.label}
+              </span>
             </button>
           );
         })}

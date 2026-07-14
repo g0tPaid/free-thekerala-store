@@ -22,8 +22,7 @@
   --color-accent-deep: var(--accent-deep);
   --color-accent-ink: var(--accent-ink);
   --font-sans: var(--font-sans-family);
-  /* English UI (CART / CHECKOUT / headings) — one family sitewide */
-  --font-serif: var(--font-sans-family);
+  --font-serif: var(--font-editorial), var(--font-sans-family);
   --font-ml: var(--font-malayalam);
 }
 
@@ -73,11 +72,22 @@ a {
   font-family: var(--font-malayalam), "Noto Serif Malayalam", serif;
 }
 
-/* Keep class names, but match CART / CHECKOUT (Plus Jakarta Sans) */
 .font-serif,
-.font-display,
+.font-display {
+  font-family: var(--font-editorial), "Playfair Display", Georgia, serif;
+}
+
 .font-sans {
   font-family: var(--font-sans-family), "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* WOMEN / KIDS / MEN — editorial display, distinct from UI sans + Malayalam */
+.audience-label {
+  font-family: var(--font-editorial), "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
 .no-scrollbar {
