@@ -127,6 +127,20 @@ export function BannerSlotField({ index, defaultUrl, defaultLink }: BannerSlotFi
           No image yet
         </div>
       )}
+      {url ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setError('');
+            setCropName(`banner-${index}.jpg`);
+            setCropSrc(url);
+          }}
+          className="w-full bg-[#4f8f6e] px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white disabled:opacity-50"
+        >
+          EDIT · CROP
+        </button>
+      ) : null}
       <div className="grid gap-3 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium" htmlFor={`banner${index}Url`}>

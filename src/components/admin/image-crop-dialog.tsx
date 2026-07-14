@@ -21,7 +21,10 @@ async function canvasFromCrop(imageSrc: string, crop: Area): Promise<HTMLCanvasE
     const img = new Image();
     img.addEventListener('load', () => resolve(img));
     img.addEventListener('error', () => reject(new Error('Could not load image for crop.')));
-    img.crossOrigin = 'anonymous';
+    // Blob URLs don't need CORS; remote/same-origin URLs do for canvas export
+    if (!imageSrc.startsWith('blob:')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.src = imageSrc;
   });
 
@@ -47,6 +50,19 @@ async function canvasFromCrop(imageSrc: string, crop: Area): Promise<HTMLCanvasE
   );
 
   return canvas;
+}
+
+/** Load any preview URL into a blob: src so crop + export always works. */
+async function localImageSrc(imageSrc: string): Promise<{ src: string; revoke: boolean }> {
+  if (imageSrc.startsWith('blob:')) {
+    return { src: imageSrc, revoke: false };
+  }
+  const response = await fetch(imageSrc, { credentials: 'same-origin' });
+  if (!response.ok) {
+    throw new Error('Could not load image for crop.');
+  }
+  const blob = await response.blob();
+  return { src: URL.createObjectURL(blob), revoke: true };
 }
 
 async function fileFromCrop(
@@ -85,14 +101,41 @@ export function ImageCropDialog({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [readySrc, setReadySrc] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setReadySrc(null);
+      return;
+    }
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedAreaPixels(null);
     setBusy(false);
     setError('');
+    setReadySrc(null);
+
+    let revoked: string | null = null;
+    let cancelled = false;
+
+    void localImageSrc(imageSrc)
+      .then(({ src, revoke }) => {
+        if (cancelled) {
+          if (revoke) URL.revokeObjectURL(src);
+          return;
+        }
+        if (revoke) revoked = src;
+        setReadySrc(src);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Could not load image.');
+      });
+
+    return () => {
+      cancelled = true;
+      if (revoked) URL.revokeObjectURL(revoked);
+    };
   }, [open, imageSrc]);
 
   useEffect(() => {
@@ -109,11 +152,11 @@ export function ImageCropDialog({
   }, []);
 
   async function confirm() {
-    if (!croppedAreaPixels || busy) return;
+    if (!croppedAreaPixels || busy || !readySrc) return;
     setBusy(true);
     setError('');
     try {
-      const file = await fileFromCrop(imageSrc, croppedAreaPixels, fileName);
+      const file = await fileFromCrop(readySrc, croppedAreaPixels, fileName);
       onComplete(file);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Crop failed.');
@@ -147,17 +190,23 @@ export function ImageCropDialog({
         </div>
 
         <div className="relative h-[min(56vh,420px)] w-full bg-neutral-900">
-          <Cropper
-            image={imageSrc}
-            crop={crop}
-            zoom={zoom}
-            aspect={aspect}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropComplete}
-            objectFit="contain"
-            showGrid
-          />
+          {readySrc ? (
+            <Cropper
+              image={readySrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={aspect}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              objectFit="contain"
+              showGrid
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-white/70">
+              {error || 'Loading image…'}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4 border-t border-black/10 px-4 py-4">
@@ -188,7 +237,7 @@ export function ImageCropDialog({
             <button
               type="button"
               onClick={() => void confirm()}
-              disabled={busy || !croppedAreaPixels}
+              disabled={busy || !croppedAreaPixels || !readySrc}
               className={cn(
                 'bg-[#4f8f6e] px-4 py-2.5 text-xs font-semibold tracking-[0.14em] text-white disabled:opacity-50',
               )}

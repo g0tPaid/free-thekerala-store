@@ -254,10 +254,20 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
                   </span>
                 ) : null}
               </div>
-              <div className="space-y-2 p-3">
+
+              <div className="space-y-2 border-t border-black/10 p-3">
+                <button
+                  type="button"
+                  onClick={() => startRecrop(item)}
+                  className="w-full bg-[#4f8f6e] px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white"
+                >
+                  EDIT · CROP
+                </button>
+
                 <p className="truncate text-xs text-black/55">
                   {item.file?.name || (item.url ? 'Saved' : `Image ${index + 1}`)}
                 </p>
+
                 <div className="flex flex-wrap gap-2">
                   {index > 0 ? (
                     <button
@@ -268,13 +278,6 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
                       MAKE COVER
                     </button>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => startRecrop(item)}
-                    className="border border-black/15 px-2 py-1 text-[10px] font-semibold tracking-[0.12em]"
-                  >
-                    CROP
-                  </button>
                   <button
                     type="button"
                     onClick={() => move(index, -1)}
@@ -294,9 +297,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
                   <button
                     type="button"
                     onClick={() => removeAt(index)}
-                    className={cn(
-                      'border border-red-600 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] text-red-700',
-                    )}
+                    className="border border-red-600 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] text-red-700"
                   >
                     REMOVE
                   </button>
