@@ -12,6 +12,7 @@ import type { HomeBanner } from '@/lib/banners';
 import { BRAND, whatsappUrl } from '@/lib/brand';
 import {
   categoriesForView,
+  compareStoreProductsForGrid,
   filterProducts,
   type ProductCategory,
   type ProductView,
@@ -38,15 +39,7 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   const filtered = useMemo(() => {
     return filterProducts(catalog, category, view)
       .slice()
-      .sort((a, b) => {
-        const aFeatured = Boolean(a.featured);
-        const bFeatured = Boolean(b.featured);
-        if (aFeatured && bFeatured) {
-          return (a.homepageOrder ?? 999) - (b.homepageOrder ?? 999);
-        }
-        if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
-        return 0;
-      });
+      .sort((a, b) => compareStoreProductsForGrid(a, b, view));
   }, [catalog, category, view]);
 
   const products = filtered.slice(0, visibleCount);

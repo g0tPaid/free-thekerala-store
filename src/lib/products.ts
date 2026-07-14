@@ -361,6 +361,38 @@ export const mockProducts: StoreProduct[] = [
   },
 ];
 
+const LINE_ORDER: Record<CatalogLine, number> = {
+  WOMEN: 0,
+  KIDS: 1,
+  MEN: 2,
+};
+
+/**
+ * Homepage grid order.
+ * On ALL: interleave featured slots across lines — Women #1, Kids #1, Men #1, then #2s, then #3s.
+ * On a line tab: featured by slot within that line only.
+ */
+export function compareStoreProductsForGrid(
+  a: StoreProduct,
+  b: StoreProduct,
+  view: ProductView = 'ALL',
+) {
+  const aFeatured = Boolean(a.featured);
+  const bFeatured = Boolean(b.featured);
+  if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
+  if (!aFeatured) return 0;
+
+  const aSlot = a.homepageOrder ?? 999;
+  const bSlot = b.homepageOrder ?? 999;
+  if (aSlot !== bSlot) return aSlot - bSlot;
+
+  if (view === 'ALL') {
+    return LINE_ORDER[a.line] - LINE_ORDER[b.line];
+  }
+
+  return 0;
+}
+
 export function filterProducts(
   products: StoreProduct[],
   category = 'ALL',

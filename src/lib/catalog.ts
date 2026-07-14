@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import { ProductStatus } from '@/generated/prisma';
 import {
+  compareStoreProductsForGrid,
   mapPrismaProductToStore,
   MAX_FEATURED_PER_LINE,
   type CatalogLine,
@@ -135,13 +136,7 @@ async function loadActiveProducts(): Promise<StoreProduct[]> {
       }
       return { ...product, featured: true, homepageOrder: rank };
     })
-    .sort((a, b) => {
-      if (a.featured && b.featured) {
-        return (a.homepageOrder ?? 999) - (b.homepageOrder ?? 999);
-      }
-      if (a.featured !== b.featured) return a.featured ? -1 : 1;
-      return 0;
-    });
+    .sort((a, b) => compareStoreProductsForGrid(a, b, 'ALL'));
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
