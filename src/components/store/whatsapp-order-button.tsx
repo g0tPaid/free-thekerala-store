@@ -2,8 +2,8 @@
 
 import { BRAND, whatsappUrl } from '@/lib/brand';
 
-const LABEL = 'ഓടേ ന്റെ സാനം';
-const ORDER_MESSAGE = `Hi, ${LABEL} — ${BRAND.domain}`;
+const LABEL = 'Talk to AJ';
+const ORDER_MESSAGE = `Hi AJ — ${BRAND.domain}`;
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -28,7 +28,7 @@ export function WhatsAppOrderButton() {
       className="fixed bottom-5 right-4 z-50 inline-flex items-center justify-center gap-2.5 rounded-full border border-[#1ebe57] bg-[#25D366] px-5 py-3.5 shadow-[0_10px_28px_rgba(37,211,102,0.35)] transition hover:brightness-105 active:scale-[0.98]"
     >
       <WhatsAppIcon className="size-6 shrink-0 text-white" />
-      <span className="inline-flex items-center justify-center pt-[1px] font-ml text-[16px] font-semibold leading-none tracking-normal text-white">
+      <span className="text-[15px] font-semibold leading-none tracking-wide text-white">
         {LABEL}
       </span>
     </a>
