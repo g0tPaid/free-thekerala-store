@@ -15,12 +15,14 @@ import {
   ProductImageGallery,
   type GalleryItem,
 } from '@/components/admin/product-image-gallery';
+import { compressImageForUpload } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 
 type CategoryOption = {
   id: string;
   name: string;
   parentName?: string | null;
+  isVisible?: boolean;
 };
 
 type ProductForForm = {
@@ -157,6 +159,7 @@ function uploadFile(file: File, onProgress: (pct: number) => void) {
     body.append('file', file);
 
     xhr.open('POST', '/api/admin/upload');
+    xhr.timeout = 120_000;
     xhr.upload.onprogress = (event) => {
       if (!event.lengthComputable) return;
       onProgress(Math.round((event.loaded / event.total) * 100));
@@ -173,47 +176,10 @@ function uploadFile(file: File, onProgress: (pct: number) => void) {
         reject(new Error(`Upload failed (${xhr.status})`));
       }
     };
+    xhr.ontimeout = () => reject(new Error('Upload timed out. Try fewer or smaller photos.'));
     xhr.onerror = () => reject(new Error('Network error while uploading.'));
     xhr.send(body);
   });
-}
-
-/** Shrink large photos before upload so create feels faster. */
-async function compressImage(file: File, maxEdge = 1600, quality = 0.82): Promise<File> {
-  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
-  if (file.size < 400_000) return file;
-
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-    if (scale >= 1 && file.size < 1_500_000) {
-      bitmap.close();
-      return file;
-    }
-
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      bitmap.close();
-      return file;
-    }
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close();
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', quality),
-    );
-    if (!blob) return file;
-
-    const baseName = file.name.replace(/\.[^.]+$/, '') || 'image';
-    return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg' });
-  } catch {
-    return file;
-  }
 }
 
 async function mapPool<T, R>(
@@ -340,14 +306,14 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
         const prepared = await Promise.all(
           pendingUploads.map(async ({ item, index }) => ({
             index,
-            file: await compressImage(item.file as File),
+            file: await compressImageForUpload(item.file as File),
           })),
         );
 
         let completed = 0;
         await mapPool(
           prepared,
-          3,
+          2,
           async ({ file, index }) => {
             const url = await uploadFile(file, () => {
               const pct = 10 + Math.round(((completed + 0.5) / prepared.length) * 75);
@@ -367,6 +333,12 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
             });
           },
         );
+
+        for (const { index } of pendingUploads) {
+          if (!urls[index]) {
+            throw new Error('One or more images failed to upload. Try again with fewer photos.');
+          }
+        }
 
         setGallery((current) =>
           current.map((item, index) =>
@@ -496,6 +468,7 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.parentName ? `${category.parentName} / ${category.name}` : category.name}
+                {category.isVisible === false ? ' (hidden)' : ''}
               </option>
             ))}
           </select>

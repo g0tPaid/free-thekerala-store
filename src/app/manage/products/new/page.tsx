@@ -11,9 +11,13 @@ export default async function NewProductPage() {
   await requireAdmin();
 
   const categories = await prisma.category.findMany({
-    where: { isVisible: true },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, parent: { select: { name: true } } },
+    select: {
+      id: true,
+      name: true,
+      isVisible: true,
+      parent: { select: { name: true } },
+    },
   });
 
   return (
@@ -30,6 +34,7 @@ export default async function NewProductPage() {
           id: category.id,
           name: category.name,
           parentName: category.parent?.name ?? null,
+          isVisible: category.isVisible,
         }))}
         submitLabel="Create product"
       />

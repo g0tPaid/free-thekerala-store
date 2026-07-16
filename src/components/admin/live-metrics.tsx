@@ -100,7 +100,7 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
     void load();
     const timer = window.setInterval(() => {
       void load();
-    }, 8000);
+    }, 30_000);
     return () => window.clearInterval(timer);
   }, [load]);
 
@@ -125,7 +125,7 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">Live metrics</p>
-          <p className="mt-1 text-sm text-blue-500">Auto-refreshes every 8s · last update {updated}</p>
+          <p className="mt-1 text-sm text-blue-500">Auto-refreshes every 30s · last update {updated}</p>
         </div>
         <button
           type="button"
@@ -142,13 +142,13 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
         <StatCard
           label="Active now"
           value={metrics.live.activeNow.toLocaleString()}
-          hint="Unique visitors · last 5 min"
+          hint="Page hits · last 5 min"
           live
         />
         <StatCard
           label="Views today"
           value={metrics.live.viewsToday.toLocaleString()}
-          hint={`${metrics.live.visitorsToday.toLocaleString()} unique visitors`}
+          hint="Page views since midnight"
           live
         />
         <StatCard

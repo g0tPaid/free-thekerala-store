@@ -182,7 +182,6 @@ async function replaceProductMedia(productId: string, formData: FormData) {
 
 function bustCatalogCache(slug?: string) {
   revalidateTag(CATALOG_CACHE_TAG);
-  revalidatePath("/");
   revalidatePath("/manage/products");
   if (slug) {
     revalidatePath(`/product/${slug}`);
@@ -229,7 +228,9 @@ export async function createProduct(
     });
 
     await replaceProductMedia(product.id, formData);
-    await repairFeaturedSlots();
+    if (wantsFeatured) {
+      await repairFeaturedSlots();
+    }
     bustCatalogCache(product.slug);
   } catch (error) {
     console.error("createProduct failed", error);
@@ -274,7 +275,9 @@ export async function updateProduct(
     });
 
     await replaceProductMedia(id, formData);
-    await repairFeaturedSlots();
+    if (wantsFeatured) {
+      await repairFeaturedSlots();
+    }
     revalidatePath(`/manage/products/edit/${id}`);
     bustCatalogCache(data.slug);
   } catch (error) {

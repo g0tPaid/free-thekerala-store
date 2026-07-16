@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   deleteProduct,
   moveFeaturedProduct,
-  repairFeaturedSlots,
   toggleFeaturedProduct,
 } from "@/app/manage/actions/products";
 import { requireAdmin } from "@/lib/auth";
@@ -32,7 +31,6 @@ function money(value: unknown) {
 
 export default async function AdminProductsPage({ searchParams }: ProductsPageProps) {
   await requireAdmin();
-  await repairFeaturedSlots();
 
   const params = await searchParams;
   const query = params?.q?.trim() ?? "";
