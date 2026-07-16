@@ -331,6 +331,7 @@ model SiteSettings {
   banner1Link     String?
   banner2Link     String?
   banner3Link     String?
+  bannersEnabled  Boolean @default(true)
   updatedAt       DateTime @updatedAt
 
   @@map("site_settings")

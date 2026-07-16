@@ -2,12 +2,14 @@
 
 import type { StoreProduct } from '@/lib/products';
 import { ProductCard } from '@/components/store/product-card';
+import { cn } from '@/lib/utils';
 
 type ProductGridProps = {
   products: Array<StoreProduct & { image?: string }>;
+  className?: string;
 };
 
-export function ProductGrid({ products }: ProductGridProps) {
+export function ProductGrid({ products, className }: ProductGridProps) {
   if (!products.length) {
     return (
       <section className="px-4 py-16 text-center">
@@ -20,7 +22,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <section className="grid grid-cols-3 gap-x-1.5 gap-y-2.5 px-2 pb-16 pt-3">
+    <section className={cn('grid grid-cols-3 gap-x-1.5 gap-y-2.5 px-2 pb-16 pt-3', className)}>
       {products.map((product) => (
         <div key={product.id}>
           <ProductCard product={product} />

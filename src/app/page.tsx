@@ -10,6 +10,7 @@ export default async function Home() {
   // Empty until DB responds — never keep mock samples when catalog is intentionally empty
   let products: StoreProduct[] = [];
   let banners = pickRandomBanners(3);
+  let bannersEnabled = true;
 
   try {
     products = await getActiveProducts();
@@ -28,13 +29,17 @@ export default async function Home() {
         banner1Link: true,
         banner2Link: true,
         banner3Link: true,
+        bannersEnabled: true,
       },
     });
     banners = resolveHomeBanners(settings);
+    bannersEnabled = settings?.bannersEnabled ?? true;
   } catch (error) {
     console.warn('Banner settings unavailable — using random banners', error);
     banners = pickRandomBanners(3);
   }
 
-  return <HomeCatalog products={products} banners={banners} />;
+  return (
+    <HomeCatalog products={products} banners={banners} bannersEnabled={bannersEnabled} />
+  );
 }

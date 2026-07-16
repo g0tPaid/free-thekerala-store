@@ -20,13 +20,19 @@ import {
 } from '@/lib/products';
 
 const PAGE_SIZE = 12;
+const MID_TICKER_AFTER = 6;
 
 type HomeCatalogProps = {
   products: StoreProduct[];
   banners: HomeBanner[];
+  bannersEnabled?: boolean;
 };
 
-export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
+export function HomeCatalog({
+  products: catalog,
+  banners,
+  bannersEnabled = true,
+}: HomeCatalogProps) {
   const [category, setCategory] = useState<ProductCategory>('ALL');
   const [view, setView] = useState<ProductView>('ALL');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -45,6 +51,10 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   const products = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
+  const midTicker = !bannersEnabled;
+  const headProducts = midTicker ? products.slice(0, MID_TICKER_AFTER) : products;
+  const tailProducts = midTicker ? products.slice(MID_TICKER_AFTER) : [];
+
   function changeCategory(nextCategory: ProductCategory) {
     setCategory(nextCategory);
     setVisibleCount(PAGE_SIZE);
@@ -59,12 +69,20 @@ export function HomeCatalog({ products: catalog, banners }: HomeCatalogProps) {
   return (
     <main className="min-h-screen">
       <Header />
-      <HeroBanners banners={banners} />
+      {bannersEnabled ? <HeroBanners banners={banners} /> : null}
       <ViewToggle value={view} onChange={changeView} />
       <CategoryNav categories={availableCategories} value={category} onChange={changeCategory} />
-      <OffersBanner />
+      {bannersEnabled ? <OffersBanner /> : null}
       <SearchOverlay products={filterProducts(catalog, 'ALL', view)} />
-      <ProductGrid products={products} />
+      {midTicker ? (
+        <>
+          <ProductGrid products={headProducts} className="pb-3" />
+          <OffersBanner />
+          {tailProducts.length ? <ProductGrid products={tailProducts} className="pt-3" /> : null}
+        </>
+      ) : (
+        <ProductGrid products={products} />
+      )}
       {filtered.length ? (
         <div className="px-4 pb-6">
           {hasMore ? (

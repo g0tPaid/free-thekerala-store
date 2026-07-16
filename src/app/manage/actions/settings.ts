@@ -87,3 +87,23 @@ export async function saveBannerSlot(index: 1 | 2 | 3, imageUrl: string) {
   revalidatePath("/");
   revalidatePath("/manage/settings");
 }
+
+export async function setBannersEnabled(formData: FormData) {
+  await requireAdmin();
+  const enabled = formData.get("enabled") === "1";
+
+  await prisma.siteSettings.upsert({
+    where: { id: "default" },
+    update: { bannersEnabled: enabled },
+    create: {
+      id: "default",
+      siteName: "The Kerala Store",
+      currency: "INR",
+      bannersEnabled: enabled,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/manage/banners");
+  revalidatePath("/manage/settings");
+}
