@@ -125,6 +125,25 @@ a {
   }
 }
 
+@keyframes audience-elephant-walk {
+  0% {
+    transform: translateX(-28px);
+  }
+  100% {
+    transform: translateX(calc(100% + 28px));
+  }
+}
+
+@keyframes audience-elephant-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
 .audience-label-pulse {
   display: inline-block;
   animation: audience-wave 2.6s ease-in-out infinite;
@@ -169,6 +188,35 @@ a {
   will-change: transform;
 }
 
+.audience-pill-elephant {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.audience-pill-elephant__walker {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  display: flex;
+  width: 100%;
+  animation: audience-elephant-walk 11s linear infinite;
+  will-change: transform;
+}
+
+.audience-pill-elephant__bob {
+  display: block;
+  width: 22px;
+  height: 16px;
+  opacity: 0.38;
+  color: #3d6b58;
+  animation: audience-elephant-bob 0.45s ease-in-out infinite;
+  will-change: transform;
+}
+
 .audience-delay-0 {
   animation-delay: 0s;
 }
@@ -184,8 +232,14 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .audience-label-pulse,
   .audience-mark-pulse,
-  .audience-pill-sheen::before {
+  .audience-pill-sheen::before,
+  .audience-pill-elephant__walker,
+  .audience-pill-elephant__bob {
     animation: none;
+  }
+
+  .audience-pill-elephant {
+    display: none;
   }
 }
 
