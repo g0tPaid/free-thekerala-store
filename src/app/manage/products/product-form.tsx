@@ -700,8 +700,8 @@ export function ProductForm({ productId, categories, product, submitLabel }: Pro
         <div className="mb-4">
           <h2 className="text-lg font-semibold">Product images</h2>
           <p className="mt-1 text-sm text-black/55">
-            Upload up to 15 photos. Each photo compresses and uploads as soon as you choose it —
-            wait until each tile says Uploaded, then Create product.
+            Add up to 15 photos (drag &amp; drop or click the box). They optimize on your phone/computer;
+            upload starts only when you hit Create / Save.
           </p>
         </div>
         <ProductImageGallery items={gallery} onChange={setGallery} max={IMAGE_SLOTS} />

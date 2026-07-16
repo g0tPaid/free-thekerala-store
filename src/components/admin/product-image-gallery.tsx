@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ImageCropDialog } from '@/components/admin/image-crop-dialog';
 import { compressImageForUpload } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
@@ -20,9 +20,16 @@ type ProductImageGalleryProps = {
 
 const MAX_PICK_BYTES = 12 * 1024 * 1024;
 const PRODUCT_ASPECT = 4 / 5;
+const IMAGE_EXT = /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i;
 
 function makeKey() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function isImageFile(file: File) {
+  if (file.type.startsWith('image/')) return true;
+  // Windows Explorer drag-drop often sends empty MIME — fall back to extension
+  return IMAGE_EXT.test(file.name);
 }
 
 export function createGalleryItem(input: { url?: string; file?: File | null; preview?: string }): GalleryItem {
@@ -38,18 +45,24 @@ export function createGalleryItem(input: { url?: string; file?: File | null; pre
 
 export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageGalleryProps) {
   const bulkId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const itemsRef = useRef(items);
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [cropping, setCropping] = useState<GalleryItem | null>(null);
+  const dragDepth = useRef(0);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     return () => {
-      items.forEach((item) => {
+      itemsRef.current.forEach((item) => {
         if (item.preview.startsWith('blob:')) URL.revokeObjectURL(item.preview);
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function setItems(next: GalleryItem[]) {
@@ -57,10 +70,19 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
   }
 
   async function addFiles(fileList: FileList | File[]) {
-    const incoming = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
-    if (!incoming.length) return;
+    const all = Array.from(fileList);
+    const incoming = all.filter(isImageFile);
+    if (!incoming.length) {
+      setError(
+        all.length
+          ? 'Those files are not supported images. Use JPG, PNG, or WebP.'
+          : 'No files received. Try Choose multiple photos instead.',
+      );
+      return;
+    }
 
-    const room = max - items.length;
+    const current = itemsRef.current;
+    const room = max - current.length;
     if (room <= 0) {
       setError(`You already have ${max} images.`);
       return;
@@ -88,7 +110,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
       }
 
       if (accepted.length) {
-        setItems([...items, ...accepted]);
+        setItems([...itemsRef.current, ...accepted]);
         if (incoming.length <= room) setError('');
       }
     } catch (err) {
@@ -103,10 +125,40 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     event.target.value = '';
   }
 
+  function onDragEnter(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepth.current += 1;
+    setDragging(true);
+  }
+
+  function onDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+    setDragging(true);
+  }
+
+  function onDragLeave(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDragging(false);
+  }
+
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
+    event.stopPropagation();
+    dragDepth.current = 0;
     setDragging(false);
-    if (event.dataTransfer.files?.length) void addFiles(event.dataTransfer.files);
+    const files = event.dataTransfer?.files;
+    if (files?.length) {
+      void addFiles(files);
+      return;
+    }
+    setError('Drop failed. Click this box or use Choose multiple photos.');
   }
 
   function removeAt(index: number) {
@@ -172,44 +224,48 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           {preparing ? 'OPTIMIZING…' : 'CHOOSE MULTIPLE PHOTOS'}
         </label>
         <input
+          ref={inputRef}
           id={bulkId}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif"
           multiple
           disabled={preparing}
           onChange={handleBulk}
           className="sr-only"
         />
         <p className="text-sm text-black/55">
-          {items.length}/{max} · first = cover · photos optimize instantly, upload on Create
+          {items.length}/{max} · first = cover · photos ready instantly, upload on Create
         </p>
       </div>
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       <div
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setDragging(true);
+        role="button"
+        tabIndex={0}
+        onClick={() => {
+          if (!preparing) inputRef.current?.click();
         }}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragging(true);
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (!preparing) inputRef.current?.click();
+          }
         }}
-        onDragLeave={(event) => {
-          event.preventDefault();
-          setDragging(false);
-        }}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={cn(
-          'border border-dashed px-4 py-8 text-center transition',
+          'cursor-pointer border border-dashed px-4 py-10 text-center transition outline-none focus-visible:border-black',
           dragging ? 'border-black bg-neutral-100' : 'border-black/20 bg-neutral-50',
+          preparing && 'pointer-events-none opacity-60',
         )}
       >
-        <p className="text-sm text-black/60">
-          Drag &amp; drop up to {max} images here, or use{' '}
-          <span className="font-medium text-black">Choose multiple photos</span>
+        <p className="text-sm font-medium text-black">
+          {dragging ? 'Drop photos here' : 'Drop photos here, or click to choose'}
         </p>
+        <p className="mt-1 text-xs text-black/55">JPG, PNG, or WebP · up to {max} images</p>
       </div>
 
       {items.length ? (
