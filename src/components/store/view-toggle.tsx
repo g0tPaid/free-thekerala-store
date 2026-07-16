@@ -37,46 +37,6 @@ const VIEW_STYLES: Record<
 
 const DELAY_CLASS = ['audience-delay-0', 'audience-delay-1', 'audience-delay-2'] as const;
 
-function WalkingElephant() {
-  return (
-    <span className="audience-pill-elephant" aria-hidden>
-      <span className="audience-pill-elephant__walker">
-        <svg
-          className="audience-pill-elephant__bob"
-          viewBox="0 0 44 32"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* body */}
-          <ellipse cx="22" cy="18" rx="12" ry="8.5" />
-          {/* head */}
-          <circle cx="33" cy="14" r="6.2" />
-          {/* ear */}
-          <ellipse cx="30.5" cy="12.5" rx="4.2" ry="5.2" opacity="0.85" />
-          {/* trunk */}
-          <path d="M37.5 15c2.2 1.2 3.8 3.4 3.2 6.2-.3 1.4-1.4 2.2-2.4 1.6-.7-.4-.6-1.3-.3-2 .6-1.4.2-2.8-1.2-3.6l.7-2.2z" />
-          {/* eye */}
-          <circle cx="35.2" cy="12.8" r="1.05" fill="#faf8f3" />
-          <circle cx="35.5" cy="12.9" r="0.45" fill="#1f3d32" />
-          {/* legs */}
-          <rect x="13.5" y="23" width="3.2" height="6.5" rx="1.4" />
-          <rect x="18.2" y="23.5" width="3.2" height="6" rx="1.4" />
-          <rect x="23.2" y="23" width="3.2" height="6.5" rx="1.4" />
-          <rect x="27.8" y="23.5" width="3.2" height="6" rx="1.4" />
-          {/* tail */}
-          <path
-            d="M10.5 16c-2.2-.2-3.8 1.2-4.2 2.8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-        </svg>
-      </span>
-    </span>
-  );
-}
-
 export function ViewToggle({ value, onChange }: ViewToggleProps) {
   const shellBorder = value === 'ALL' ? 'border-black/15' : VIEW_STYLES[value].border;
 
@@ -89,7 +49,6 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
         )}
       >
         <span className="audience-pill-sheen" aria-hidden />
-        <WalkingElephant />
         {AUDIENCE_VIEWS.map((view, index) => {
           const styles = VIEW_STYLES[view];
           const selected = value === view;
