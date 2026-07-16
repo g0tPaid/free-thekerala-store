@@ -116,6 +116,15 @@ a {
   }
 }
 
+@keyframes audience-pill-sweep {
+  0% {
+    transform: translateX(-45%);
+  }
+  100% {
+    transform: translateX(45%);
+  }
+}
+
 .audience-label-pulse {
   display: inline-block;
   animation: audience-wave 2.6s ease-in-out infinite;
@@ -127,6 +136,36 @@ a {
   display: inline-block;
   animation: audience-mark-wave 2.6s ease-in-out infinite;
   transform-origin: center;
+  will-change: transform;
+}
+
+.audience-pill-sheen {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.audience-pill-sheen::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: 0;
+  height: 180%;
+  width: 55%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(236, 72, 153, 0.14) 22%,
+    rgba(167, 139, 250, 0.2) 48%,
+    rgba(59, 130, 246, 0.14) 72%,
+    transparent 100%
+  );
+  filter: blur(6px);
+  animation: audience-pill-sweep 4.8s ease-in-out infinite alternate;
   will-change: transform;
 }
 
@@ -144,7 +183,8 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .audience-label-pulse,
-  .audience-mark-pulse {
+  .audience-mark-pulse,
+  .audience-pill-sheen::before {
     animation: none;
   }
 }

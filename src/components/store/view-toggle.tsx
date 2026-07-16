@@ -48,6 +48,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
           shellBorder,
         )}
       >
+        <span className="audience-pill-sheen" aria-hidden />
         {AUDIENCE_VIEWS.map((view, index) => {
           const styles = VIEW_STYLES[view];
           const selected = value === view;
