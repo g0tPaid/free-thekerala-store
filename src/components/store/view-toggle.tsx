@@ -35,6 +35,8 @@ const VIEW_STYLES: Record<
   },
 };
 
+const DELAY_CLASS = ['audience-delay-0', 'audience-delay-1', 'audience-delay-2'] as const;
+
 export function ViewToggle({ value, onChange }: ViewToggleProps) {
   const shellBorder = value === 'ALL' ? 'border-black/15' : VIEW_STYLES[value].border;
 
@@ -46,23 +48,32 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
           shellBorder,
         )}
       >
-        {AUDIENCE_VIEWS.map((view) => {
+        {AUDIENCE_VIEWS.map((view, index) => {
           const styles = VIEW_STYLES[view];
           const selected = value === view;
+          const delay = DELAY_CLASS[index] ?? DELAY_CLASS[0];
           return (
             <button
               key={view}
               type="button"
               onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
+                'audience-tab-pulse relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
                 selected ? styles.active : styles.idle,
+                delay,
               )}
             >
-              <span className="text-[11px] leading-none" aria-hidden>
+              <span className={cn('audience-mark-pulse text-[11px] leading-none', delay)} aria-hidden>
                 {styles.mark}
               </span>
-              <span className="audience-label-script text-[15px] leading-none">{styles.label}</span>
+              <span
+                className={cn(
+                  'audience-label-script audience-label-pulse text-[15px] leading-none',
+                  delay,
+                )}
+              >
+                {styles.label}
+              </span>
             </button>
           );
         })}
