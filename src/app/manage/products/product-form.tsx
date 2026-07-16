@@ -15,7 +15,6 @@ import {
   ProductImageGallery,
   type GalleryItem,
 } from '@/components/admin/product-image-gallery';
-import { compressImageForUpload } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 
 type CategoryOption = {
@@ -152,61 +151,6 @@ function toggleValue(list: string[], value: string) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
-function uploadFile(file: File, onProgress: (pct: number) => void) {
-  return new Promise<string>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const body = new FormData();
-    body.append('file', file);
-
-    xhr.open('POST', '/api/admin/upload');
-    xhr.timeout = 120_000;
-    xhr.upload.onprogress = (event) => {
-      if (!event.lengthComputable) return;
-      onProgress(Math.round((event.loaded / event.total) * 100));
-    };
-    xhr.onload = () => {
-      try {
-        const payload = JSON.parse(xhr.responseText || '{}') as { url?: string; error?: string };
-        if (xhr.status >= 200 && xhr.status < 300 && payload.url) {
-          resolve(payload.url);
-          return;
-        }
-        reject(new Error(payload.error || `Upload failed (${xhr.status})`));
-      } catch {
-        reject(new Error(`Upload failed (${xhr.status})`));
-      }
-    };
-    xhr.ontimeout = () => reject(new Error('Upload timed out. Try fewer or smaller photos.'));
-    xhr.onerror = () => reject(new Error('Network error while uploading.'));
-    xhr.send(body);
-  });
-}
-
-async function mapPool<T, R>(
-  items: T[],
-  limit: number,
-  worker: (item: T, index: number) => Promise<R>,
-  onItemDone?: (done: number, total: number) => void,
-): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-  let done = 0;
-
-  async function run() {
-    while (nextIndex < items.length) {
-      const current = nextIndex;
-      nextIndex += 1;
-      results[current] = await worker(items[current], current);
-      done += 1;
-      onItemDone?.(done, items.length);
-    }
-  }
-
-  const runners = Array.from({ length: Math.min(limit, items.length) }, () => run());
-  await Promise.all(runners);
-  return results;
-}
-
 function SizeChip({
   label,
   selected,
@@ -296,81 +240,32 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
 
     setClientError('');
     setSubmitting(true);
-    setProgress({ pct: 4, label: 'Preparing…' });
+    setProgress({ pct: 10, label: 'Saving product…' });
     clearWatchdog();
     watchdogRef.current = window.setTimeout(() => {
       setProgress(null);
       setSubmitting(false);
-      setClientError(
-        'Save is taking too long. Try again with 1–3 smaller photos, or refresh and retry.',
-      );
-    }, 90_000);
+      setClientError('Save is taking too long. Refresh and try again.');
+    }, 60_000);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
     formData.set('sizes', selectedSizes.join(', '));
 
     try {
-      const pendingUploads = gallery
-        .map((item, index) => (item.file ? { item, index } : null))
-        .filter(Boolean) as Array<{ item: GalleryItem; index: number }>;
-
-      const urls = gallery.map((item) => item.url);
-
-      if (pendingUploads.length) {
-        setProgress({ pct: 8, label: `Optimizing ${pendingUploads.length} image(s)…` });
-        const prepared = await Promise.all(
-          pendingUploads.map(async ({ item, index }) => ({
-            index,
-            file: await compressImageForUpload(item.file as File),
-          })),
-        );
-
-        let completed = 0;
-        await mapPool(
-          prepared,
-          2,
-          async ({ file, index }) => {
-            const url = await uploadFile(file, () => {
-              const pct = 10 + Math.round(((completed + 0.5) / prepared.length) * 75);
-              setProgress({
-                pct: Math.min(85, pct),
-                label: `Uploading images… ${completed + 1}/${prepared.length}`,
-              });
-            });
-            urls[index] = url;
-            return url;
-          },
-          (done, total) => {
-            completed = done;
-            setProgress({
-              pct: 10 + Math.round((done / total) * 75),
-              label: `Uploaded ${done} of ${total}…`,
-            });
-          },
-        );
-
-        for (const { index } of pendingUploads) {
-          if (!urls[index]) {
-            throw new Error('One or more images failed to upload. Try again with fewer photos.');
-          }
-        }
-
-        setGallery((current) =>
-          current.map((item, index) =>
-            urls[index]
-              ? { ...item, url: urls[index], file: null, preview: urls[index] }
-              : item,
-          ),
+      const missing = gallery.filter((item) => !item.url);
+      if (missing.length) {
+        throw new Error(
+          'Wait for all photos to finish uploading (no amber NOT UPLOADED badges), then Create again.',
         );
       }
 
       for (let index = 0; index < IMAGE_SLOTS; index += 1) {
         formData.delete(`image${index}`);
-        formData.set(`existingImageUrl${index}`, urls[index] || '');
+        formData.set(`existingImageUrl${index}`, gallery[index]?.url || '');
       }
 
-      setProgress({ pct: 92, label: 'Saving product…' });
+      setProgress({ pct: 70, label: 'Saving product…' });
       startTransition(() => {
         formAction(formData);
       });
@@ -378,7 +273,7 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
       clearWatchdog();
       setProgress(null);
       setSubmitting(false);
-      setClientError(error instanceof Error ? error.message : 'Upload failed.');
+      setClientError(error instanceof Error ? error.message : 'Could not save.');
     }
   }
 
@@ -799,9 +694,8 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
         <div className="mb-4">
           <h2 className="text-lg font-semibold">Product images</h2>
           <p className="mt-1 text-sm text-black/55">
-            Upload up to 15 photos at once (hold Ctrl/Cmd to multi-select). First image is the cover —
-            use Make cover or arrows to change order.
-            Photos are compressed before upload for speed.
+            Upload up to 15 photos. Each photo compresses and uploads as soon as you choose it —
+            wait until each tile says Uploaded, then Create product.
           </p>
         </div>
         <ProductImageGallery items={gallery} onChange={setGallery} max={IMAGE_SLOTS} />

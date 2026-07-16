@@ -3,15 +3,16 @@
 async function canvasToJpegFile(
   canvas: HTMLCanvasElement,
   baseName: string,
-  quality = 0.62,
+  quality = 0.55,
 ): Promise<File | null> {
   let q = quality;
   let blob: Blob | null = null;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
     blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', q));
     if (!blob) break;
-    if (blob.size <= 180_000 || q <= 0.45) break;
-    q -= 0.08;
+    // Keep uploads tiny so Railway Postgres BYTEA inserts don't time out
+    if (blob.size <= 120_000 || q <= 0.35) break;
+    q -= 0.05;
   }
   if (!blob) return null;
   const name = baseName.replace(/\.[^.]+$/, '') || 'image';
@@ -20,8 +21,8 @@ async function canvasToJpegFile(
 
 export async function compressImageForUpload(
   file: File,
-  maxEdge = 1000,
-  quality = 0.62,
+  maxEdge = 900,
+  quality = 0.55,
 ): Promise<File> {
   if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
 
@@ -46,4 +47,35 @@ export async function compressImageForUpload(
   } catch {
     return file;
   }
+}
+
+export function uploadImageFile(file: File, onProgress?: (pct: number) => void) {
+  return new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const body = new FormData();
+    body.append('file', file);
+
+    xhr.open('POST', '/api/admin/upload');
+    xhr.timeout = 60_000;
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || !onProgress) return;
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onload = () => {
+      try {
+        const payload = JSON.parse(xhr.responseText || '{}') as { url?: string; error?: string };
+        if (xhr.status >= 200 && xhr.status < 300 && payload.url) {
+          resolve(payload.url);
+          return;
+        }
+        reject(new Error(payload.error || `Upload failed (${xhr.status})`));
+      } catch {
+        reject(new Error(`Upload failed (${xhr.status})`));
+      }
+    };
+    xhr.ontimeout = () =>
+      reject(new Error('Upload timed out. Use a smaller photo (under 1MB after compress).'));
+    xhr.onerror = () => reject(new Error('Network error while uploading.'));
+    xhr.send(body);
+  });
 }

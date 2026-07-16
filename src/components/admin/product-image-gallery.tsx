@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ImageCropDialog } from '@/components/admin/image-crop-dialog';
+import { compressImageForUpload, uploadImageFile } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 
 export type GalleryItem = {
@@ -17,7 +18,7 @@ type ProductImageGalleryProps = {
   max?: number;
 };
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_PICK_BYTES = 12 * 1024 * 1024;
 /** Matches product cards / gallery tiles */
 const PRODUCT_ASPECT = 4 / 5;
 
@@ -40,6 +41,8 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
   const bulkId = useId();
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [status, setStatus] = useState('');
   const [cropping, setCropping] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     onChange(next.slice(0, max));
   }
 
-  function addFiles(fileList: FileList | File[]) {
+  async function addFiles(fileList: FileList | File[]) {
     const incoming = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
     if (!incoming.length) return;
 
@@ -66,35 +69,54 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
       return;
     }
 
-    const accepted: GalleryItem[] = [];
-    for (const file of incoming.slice(0, room)) {
-      if (file.size > MAX_BYTES) {
-        setError(`${file.name} is larger than 8MB.`);
-        continue;
+    const slice = incoming.slice(0, room);
+    setPreparing(true);
+    setError(
+      incoming.length > room
+        ? `Only ${room} more image${room === 1 ? '' : 's'} can be added (max ${max}).`
+        : '',
+    );
+
+    try {
+      const accepted: GalleryItem[] = [];
+      for (let i = 0; i < slice.length; i += 1) {
+        const file = slice[i];
+        if (file.size > MAX_PICK_BYTES) {
+          setError(`${file.name} is larger than 12MB.`);
+          continue;
+        }
+
+        setStatus(`Compressing ${i + 1}/${slice.length}…`);
+        const crushed = await compressImageForUpload(file);
+        setStatus(`Uploading ${i + 1}/${slice.length}…`);
+        const url = await uploadImageFile(crushed, (pct) => {
+          setStatus(`Uploading ${i + 1}/${slice.length} · ${pct}%`);
+        });
+        const preview = URL.createObjectURL(crushed);
+        accepted.push(createGalleryItem({ url, file: null, preview: url || preview }));
       }
-      accepted.push(createGalleryItem({ file, preview: URL.createObjectURL(file) }));
-    }
 
-    if (incoming.length > room) {
-      setError(`Only ${room} more image${room === 1 ? '' : 's'} can be added (max ${max}).`);
-    } else if (accepted.length) {
-      setError('');
-    }
-
-    if (accepted.length) {
-      setItems([...items, ...accepted]);
+      if (accepted.length) {
+        setItems([...items, ...accepted]);
+        if (incoming.length <= room) setError('');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Photo upload failed. Try a smaller image.');
+    } finally {
+      setPreparing(false);
+      setStatus('');
     }
   }
 
   function handleBulk(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.files?.length) addFiles(event.target.files);
+    if (event.target.files?.length) void addFiles(event.target.files);
     event.target.value = '';
   }
 
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragging(false);
-    if (event.dataTransfer.files?.length) addFiles(event.dataTransfer.files);
+    if (event.dataTransfer.files?.length) void addFiles(event.dataTransfer.files);
   }
 
   function removeAt(index: number) {
@@ -121,22 +143,32 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     setItems(next);
   }
 
-  function finishCrop(file: File) {
+  async function finishCrop(file: File) {
     if (!cropping) return;
     const key = cropping.key;
-    const preview = URL.createObjectURL(file);
-    const cropped = createGalleryItem({ file, preview });
-    setItems(
-      items.map((item) => {
-        if (item.key !== key) return item;
-        if (item.preview.startsWith('blob:') && item.preview !== preview) {
-          URL.revokeObjectURL(item.preview);
-        }
-        return cropped;
-      }),
-    );
     setCropping(null);
-    setError('');
+    setPreparing(true);
+    setStatus('Uploading crop…');
+    try {
+      const crushed = await compressImageForUpload(file);
+      const url = await uploadImageFile(crushed);
+      const cropped = createGalleryItem({ url, file: null, preview: url });
+      setItems(
+        items.map((item) => {
+          if (item.key !== key) return item;
+          if (item.preview.startsWith('blob:') && item.preview !== url) {
+            URL.revokeObjectURL(item.preview);
+          }
+          return cropped;
+        }),
+      );
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Crop upload failed.');
+    } finally {
+      setPreparing(false);
+      setStatus('');
+    }
   }
 
   return (
@@ -144,23 +176,28 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
       <div className="flex flex-wrap items-center gap-3">
         <label
           htmlFor={bulkId}
-          className="cursor-pointer bg-black px-4 py-2.5 text-xs font-semibold tracking-[0.14em] text-white"
+          className={cn(
+            'cursor-pointer bg-black px-4 py-2.5 text-xs font-semibold tracking-[0.14em] text-white',
+            preparing && 'pointer-events-none opacity-60',
+          )}
         >
-          CHOOSE MULTIPLE PHOTOS
+          {preparing ? 'UPLOADING…' : 'CHOOSE MULTIPLE PHOTOS'}
         </label>
         <input
           id={bulkId}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/gif"
           multiple
+          disabled={preparing}
           onChange={handleBulk}
           className="sr-only"
         />
         <p className="text-sm text-black/55">
-          {items.length}/{max} · first = cover · crop only when you tap EDIT
+          {items.length}/{max} · first = cover · photos upload immediately when chosen
         </p>
       </div>
 
+      {status ? <p className="text-sm font-medium text-black/70">{status}</p> : null}
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       <div
@@ -187,8 +224,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           <span className="font-medium text-black">Choose multiple photos</span>
         </p>
         <p className="mt-1 text-xs text-black/45">
-          Photos add as-is. Use <span className="font-medium text-black">EDIT · CROP</span> under any
-          picture when you want to crop.
+          Each photo is compressed and uploaded right away. Wait for UPLOADING… to finish before Create.
         </p>
       </div>
 
@@ -198,27 +234,34 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
             <div key={item.key} className="overflow-hidden border border-black/15 bg-white">
               <div className="relative aspect-[4/5] bg-neutral-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.preview} alt={`Product image ${index + 1}`} className="h-full w-full object-cover" />
+                <img
+                  src={item.preview || item.url}
+                  alt={`Product image ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
                 {index === 0 ? (
                   <span className="absolute left-2 top-2 bg-black px-2 py-1 text-[10px] font-semibold tracking-[0.14em] text-white">
                     COVER
                   </span>
                 ) : null}
+                {!item.url ? (
+                  <span className="absolute inset-x-0 bottom-0 bg-amber-500 px-2 py-1 text-center text-[10px] font-semibold text-white">
+                    NOT UPLOADED
+                  </span>
+                ) : null}
               </div>
-
               <div className="space-y-2 border-t border-black/10 p-3">
                 <button
                   type="button"
                   onClick={() => setCropping(item)}
-                  className="w-full bg-[#4f8f6e] px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white"
+                  disabled={preparing || !item.url}
+                  className="w-full bg-black px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white disabled:opacity-50"
                 >
                   EDIT · CROP
                 </button>
-
                 <p className="truncate text-xs text-black/55">
-                  {item.file?.name || (item.url ? 'Saved' : `Image ${index + 1}`)}
+                  {item.url ? 'Uploaded' : 'Waiting…'}
                 </p>
-
                 <div className="flex flex-wrap gap-2">
                   {index > 0 ? (
                     <button
@@ -262,13 +305,15 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
       {cropping ? (
         <ImageCropDialog
           open
-          imageSrc={cropping.preview}
+          imageSrc={cropping.preview || cropping.url}
           fileName={cropping.file?.name || 'product.jpg'}
           aspect={PRODUCT_ASPECT}
           title="Crop product photo"
           hint="Frame the product — 4:5 matches the shop cards. Drag to reposition, zoom if needed."
           onCancel={() => setCropping(null)}
-          onComplete={finishCrop}
+          onComplete={(file) => {
+            void finishCrop(file);
+          }}
         />
       ) : null}
     </div>

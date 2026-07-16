@@ -6,7 +6,8 @@ import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const MAX_BYTES = 8 * 1024 * 1024;
+/** Hard limit for Postgres BYTEA — client must compress first. */
+const MAX_BYTES = 900_000;
 
 function extensionFor(type: string, filename: string) {
   if (type === 'image/jpeg') return 'jpg';
@@ -64,7 +65,9 @@ export async function saveUploadedImage(file: File | null | undefined, folder = 
   }
 
   if (file.size > MAX_BYTES) {
-    throw new Error('Image must be 8MB or smaller.');
+    throw new Error(
+      `Image must be under ${Math.round(MAX_BYTES / 1024)}KB after compress (got ${Math.round(file.size / 1024)}KB).`,
+    );
   }
 
   const mimeType = ALLOWED_TYPES.has(type) ? type : extensionFor(type, file.name) === 'png'
