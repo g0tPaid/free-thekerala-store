@@ -1,20 +1,12 @@
 'use client';
 
-import {
-  useActionState,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-  type FormEvent,
-} from 'react';
-import type { ProductActionState } from '@/app/manage/actions/products';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   createGalleryItem,
   ProductImageGallery,
   type GalleryItem,
 } from '@/components/admin/product-image-gallery';
+import { uploadImageFile } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 
 type CategoryOption = {
@@ -52,7 +44,7 @@ type ProductForForm = {
 };
 
 type ProductFormProps = {
-  action: (state: ProductActionState, formData: FormData) => Promise<ProductActionState>;
+  productId?: string;
   categories: CategoryOption[];
   product?: ProductForForm | null;
   submitLabel: string;
@@ -174,13 +166,10 @@ function SizeChip({
   );
 }
 
-export function ProductForm({ action, categories, product, submitLabel }: ProductFormProps) {
-  const [state, formAction] = useActionState(action, {});
-  const [pending, startTransition] = useTransition();
+export function ProductForm({ productId, categories, product, submitLabel }: ProductFormProps) {
   const [clientError, setClientError] = useState('');
   const [progress, setProgress] = useState<{ pct: number; label: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const wasPendingRef = useRef(false);
   const watchdogRef = useRef<number | null>(null);
 
   function clearWatchdog() {
@@ -236,39 +225,81 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting || pending) return;
+    if (submitting) return;
 
     setClientError('');
     setSubmitting(true);
-    setProgress({ pct: 10, label: 'Saving product…' });
+    setProgress({ pct: 5, label: 'Preparing…' });
     clearWatchdog();
     watchdogRef.current = window.setTimeout(() => {
       setProgress(null);
       setSubmitting(false);
-      setClientError('Save is taking too long. Refresh and try again.');
-    }, 60_000);
+      setClientError('Save is taking too long. Refresh and try again with 1–2 smaller photos.');
+    }, 90_000);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
     formData.set('sizes', selectedSizes.join(', '));
 
     try {
-      const missing = gallery.filter((item) => !item.url);
-      if (missing.length) {
-        throw new Error(
-          'Wait for all photos to finish uploading (no amber NOT UPLOADED badges), then Create again.',
+      const urls: string[] = [];
+      const toUpload = gallery.filter((item) => item.file && !item.url);
+      const totalSteps = Math.max(1, toUpload.length + 1);
+      let done = 0;
+
+      for (let index = 0; index < gallery.length; index += 1) {
+        const item = gallery[index];
+        if (item.url) {
+          urls.push(item.url);
+          continue;
+        }
+        if (!item.file) continue;
+
+        setProgress({
+          pct: Math.round((done / totalSteps) * 80) + 5,
+          label: `Uploading photo ${done + 1} of ${toUpload.length}…`,
+        });
+        const url = await uploadImageFile(item.file, (pct) => {
+          const base = Math.round((done / totalSteps) * 80) + 5;
+          setProgress({
+            pct: Math.min(85, base + Math.round(pct * 0.1)),
+            label: `Uploading photo ${done + 1} of ${toUpload.length}…`,
+          });
+        });
+        urls.push(url);
+        done += 1;
+        setGallery((prev) =>
+          prev.map((g, i) => (i === index ? { ...g, url, file: null } : g)),
         );
       }
 
       for (let index = 0; index < IMAGE_SLOTS; index += 1) {
         formData.delete(`image${index}`);
-        formData.set(`existingImageUrl${index}`, gallery[index]?.url || '');
+        formData.set(`existingImageUrl${index}`, urls[index] || '');
       }
 
-      setProgress({ pct: 70, label: 'Saving product…' });
-      startTransition(() => {
-        formAction(formData);
+      setProgress({ pct: 90, label: 'Saving product…' });
+      const endpoint = productId
+        ? `/api/manage/products/${productId}`
+        : '/api/manage/products';
+      const response = await fetch(endpoint, {
+        method: productId ? 'PATCH' : 'POST',
+        body: formData,
+        credentials: 'same-origin',
       });
+      const payload = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        redirectTo?: string;
+      };
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || `Save failed (${response.status})`);
+      }
+
+      clearWatchdog();
+      setProgress({ pct: 100, label: 'Done — opening products…' });
+      window.location.assign(payload.redirectTo || '/manage/products');
     } catch (error) {
       clearWatchdog();
       setProgress(null);
@@ -277,35 +308,10 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
     }
   }
 
-  useEffect(() => {
-    if (pending) {
-      wasPendingRef.current = true;
-      return;
-    }
-
-    if (!wasPendingRef.current) return;
-    wasPendingRef.current = false;
-    clearWatchdog();
-
-    if (state.error) {
-      setProgress(null);
-      setSubmitting(false);
-      return;
-    }
-
-    if (state.success) {
-      setProgress({ pct: 100, label: 'Done — opening products…' });
-      window.location.assign(state.redirectTo || '/manage/products');
-      return;
-    }
-
-    setSubmitting(false);
-  }, [pending, state.error, state.success, state.redirectTo]);
-
   useEffect(() => () => clearWatchdog(), []);
 
-  const error = clientError || state.error;
-  const busy = submitting || pending;
+  const error = clientError;
+  const busy = submitting;
 
   return (
     <form onSubmit={onSubmit} encType="multipart/form-data" className="space-y-8">

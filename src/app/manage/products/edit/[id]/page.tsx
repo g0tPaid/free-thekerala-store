@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateProduct } from "@/app/manage/actions/products";
 import { ProductForm } from "@/app/manage/products/product-form";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -53,7 +52,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         <h1 className="mt-3 text-3xl font-semibold">Edit product</h1>
       </div>
       <ProductForm
-        action={updateProduct.bind(null, product.id)}
+        productId={product.id}
         categories={categories.map((category) => ({
           id: category.id,
           name: category.name,

@@ -16,6 +16,9 @@ export default function Error({
     error.message?.includes('was not found on the server') ||
     error.message?.includes('Failed to find Server Action');
 
+  const isManage =
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/manage');
+
   useEffect(() => {
     if (!staleAction || typeof window === 'undefined') return;
 
@@ -39,11 +42,17 @@ export default function Error({
   return (
     <main className="grid min-h-screen place-items-center px-6 text-center">
       <div>
-        <p className="text-sm font-semibold tracking-[0.2em] text-muted">SOMETHING WENT WRONG</p>
-        <h1 className="mt-3 font-serif text-3xl tracking-[-0.04em]">Could not load this page.</h1>
+        <p className="text-sm font-semibold tracking-[0.2em] text-muted">
+          {isManage ? 'PAGE NEEDS A REFRESH' : 'SOMETHING WENT WRONG'}
+        </p>
+        <h1 className="mt-3 font-serif text-3xl tracking-[-0.04em]">
+          {isManage ? 'Admin form went stale after an update.' : 'Could not load this page.'}
+        </h1>
         <p className="mx-auto mt-3 max-w-sm text-sm text-muted">
           {staleAction
-            ? 'The site was just updated. Reloading a fresh version…'
+            ? isManage
+              ? 'A deploy happened while this tab was open. Reload, then create the product again — photos upload only when you hit Create.'
+              : 'The site was just updated. Reloading a fresh version…'
             : error.message || 'Please try again.'}
         </p>
         <button

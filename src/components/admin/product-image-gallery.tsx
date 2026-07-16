@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ImageCropDialog } from '@/components/admin/image-crop-dialog';
-import { compressImageForUpload, uploadImageFile } from '@/lib/compress-image';
+import { compressImageForUpload } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 
 export type GalleryItem = {
@@ -19,7 +19,6 @@ type ProductImageGalleryProps = {
 };
 
 const MAX_PICK_BYTES = 12 * 1024 * 1024;
-/** Matches product cards / gallery tiles */
 const PRODUCT_ASPECT = 4 / 5;
 
 function makeKey() {
@@ -42,7 +41,6 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
   const [preparing, setPreparing] = useState(false);
-  const [status, setStatus] = useState('');
   const [cropping, setCropping] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
@@ -51,7 +49,6 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
         if (item.preview.startsWith('blob:')) URL.revokeObjectURL(item.preview);
       });
     };
-    // Only revoke on unmount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,21 +76,15 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
 
     try {
       const accepted: GalleryItem[] = [];
-      for (let i = 0; i < slice.length; i += 1) {
-        const file = slice[i];
+      for (const file of slice) {
         if (file.size > MAX_PICK_BYTES) {
           setError(`${file.name} is larger than 12MB.`);
           continue;
         }
-
-        setStatus(`Compressing ${i + 1}/${slice.length}…`);
+        // Compress locally only — upload happens when you Create/Save
         const crushed = await compressImageForUpload(file);
-        setStatus(`Uploading ${i + 1}/${slice.length}…`);
-        const url = await uploadImageFile(crushed, (pct) => {
-          setStatus(`Uploading ${i + 1}/${slice.length} · ${pct}%`);
-        });
         const preview = URL.createObjectURL(crushed);
-        accepted.push(createGalleryItem({ url, file: null, preview: url || preview }));
+        accepted.push(createGalleryItem({ file: crushed, preview }));
       }
 
       if (accepted.length) {
@@ -101,10 +92,9 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
         if (incoming.length <= room) setError('');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Photo upload failed. Try a smaller image.');
+      setError(err instanceof Error ? err.message : 'Could not prepare photos.');
     } finally {
       setPreparing(false);
-      setStatus('');
     }
   }
 
@@ -148,15 +138,14 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
     const key = cropping.key;
     setCropping(null);
     setPreparing(true);
-    setStatus('Uploading crop…');
     try {
       const crushed = await compressImageForUpload(file);
-      const url = await uploadImageFile(crushed);
-      const cropped = createGalleryItem({ url, file: null, preview: url });
+      const preview = URL.createObjectURL(crushed);
+      const cropped = createGalleryItem({ file: crushed, preview });
       setItems(
         items.map((item) => {
           if (item.key !== key) return item;
-          if (item.preview.startsWith('blob:') && item.preview !== url) {
+          if (item.preview.startsWith('blob:') && item.preview !== preview) {
             URL.revokeObjectURL(item.preview);
           }
           return cropped;
@@ -164,10 +153,9 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
       );
       setError('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Crop upload failed.');
+      setError(err instanceof Error ? err.message : 'Crop failed.');
     } finally {
       setPreparing(false);
-      setStatus('');
     }
   }
 
@@ -181,7 +169,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
             preparing && 'pointer-events-none opacity-60',
           )}
         >
-          {preparing ? 'UPLOADING…' : 'CHOOSE MULTIPLE PHOTOS'}
+          {preparing ? 'OPTIMIZING…' : 'CHOOSE MULTIPLE PHOTOS'}
         </label>
         <input
           id={bulkId}
@@ -193,11 +181,10 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           className="sr-only"
         />
         <p className="text-sm text-black/55">
-          {items.length}/{max} · first = cover · photos upload immediately when chosen
+          {items.length}/{max} · first = cover · photos optimize instantly, upload on Create
         </p>
       </div>
 
-      {status ? <p className="text-sm font-medium text-black/70">{status}</p> : null}
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       <div
@@ -223,9 +210,6 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           Drag &amp; drop up to {max} images here, or use{' '}
           <span className="font-medium text-black">Choose multiple photos</span>
         </p>
-        <p className="mt-1 text-xs text-black/45">
-          Each photo is compressed and uploaded right away. Wait for UPLOADING… to finish before Create.
-        </p>
       </div>
 
       {items.length ? (
@@ -244,23 +228,18 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
                     COVER
                   </span>
                 ) : null}
-                {!item.url ? (
-                  <span className="absolute inset-x-0 bottom-0 bg-amber-500 px-2 py-1 text-center text-[10px] font-semibold text-white">
-                    NOT UPLOADED
-                  </span>
-                ) : null}
               </div>
               <div className="space-y-2 border-t border-black/10 p-3">
                 <button
                   type="button"
                   onClick={() => setCropping(item)}
-                  disabled={preparing || !item.url}
+                  disabled={preparing}
                   className="w-full bg-black px-3 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-white disabled:opacity-50"
                 >
                   EDIT · CROP
                 </button>
                 <p className="truncate text-xs text-black/55">
-                  {item.url ? 'Uploaded' : 'Waiting…'}
+                  {item.url ? 'Saved' : item.file?.name || `Image ${index + 1}`}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {index > 0 ? (
@@ -309,7 +288,7 @@ export function ProductImageGallery({ items, onChange, max = 15 }: ProductImageG
           fileName={cropping.file?.name || 'product.jpg'}
           aspect={PRODUCT_ASPECT}
           title="Crop product photo"
-          hint="Frame the product — 4:5 matches the shop cards. Drag to reposition, zoom if needed."
+          hint="Frame the product — 4:5 matches the shop cards."
           onCancel={() => setCropping(null)}
           onComplete={(file) => {
             void finishCrop(file);
