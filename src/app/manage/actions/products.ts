@@ -16,6 +16,8 @@ import { saveUploadedImage } from "@/lib/uploads";
 
 export type ProductActionState = {
   error?: string;
+  success?: boolean;
+  redirectTo?: string;
 };
 
 const categoryLineSelect = {
@@ -190,9 +192,34 @@ function bustCatalogCache(slug?: string) {
 
 function actionError(error: unknown) {
   if (error instanceof Error && error.message) {
-    return error.message;
+    const message = error.message;
+    if (message.includes("Unique constraint") && message.includes("slug")) {
+      return "A product with this slug already exists. Change the name/slug and try again.";
+    }
+    if (message.includes("Unique constraint") && message.includes("sku")) {
+      return "This SKU is already used. Clear SKU or use a different one.";
+    }
+    if (message.includes("Unique constraint")) {
+      return "This product conflicts with an existing one (slug or SKU). Change it and try again.";
+    }
+    return message;
   }
   return "Could not save product. Try fewer or smaller images (under 8MB each).";
+}
+
+async function ensureUniqueSlug(baseSlug: string, excludeId?: string) {
+  let slug = baseSlug || `product-${Date.now()}`;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const existing = await prisma.product.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!existing || (excludeId && existing.id === excludeId)) {
+      return slug;
+    }
+    slug = `${baseSlug}-${attempt + 2}`;
+  }
+  return `${baseSlug}-${Date.now()}`;
 }
 
 export async function createProduct(
@@ -220,6 +247,8 @@ export async function createProduct(
       }
     }
 
+    data.slug = await ensureUniqueSlug(data.slug);
+
     const product = await prisma.product.create({
       data: {
         ...data,
@@ -232,12 +261,11 @@ export async function createProduct(
       await repairFeaturedSlots();
     }
     bustCatalogCache(product.slug);
+    return { success: true, redirectTo: "/manage/products" };
   } catch (error) {
     console.error("createProduct failed", error);
     return { error: actionError(error) };
   }
-
-  redirect("/manage/products");
 }
 
 export async function updateProduct(
@@ -266,6 +294,8 @@ export async function updateProduct(
       }
     }
 
+    data.slug = await ensureUniqueSlug(data.slug, id);
+
     await prisma.product.update({
       where: { id },
       data: {
@@ -280,12 +310,11 @@ export async function updateProduct(
     }
     revalidatePath(`/manage/products/edit/${id}`);
     bustCatalogCache(data.slug);
+    return { success: true, redirectTo: "/manage/products" };
   } catch (error) {
     console.error("updateProduct failed", error);
     return { error: actionError(error) };
   }
-
-  redirect("/manage/products");
 }
 
 export async function deleteProduct(formData: FormData) {

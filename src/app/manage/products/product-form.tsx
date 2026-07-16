@@ -237,6 +237,14 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
   const [progress, setProgress] = useState<{ pct: number; label: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const wasPendingRef = useRef(false);
+  const watchdogRef = useRef<number | null>(null);
+
+  function clearWatchdog() {
+    if (watchdogRef.current != null) {
+      window.clearTimeout(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  }
 
   const initialMode = guessSizeMode(product?.sizes ?? []);
   const [sizeMode, setSizeMode] = useState<SizeMode>(initialMode);
@@ -289,6 +297,14 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
     setClientError('');
     setSubmitting(true);
     setProgress({ pct: 4, label: 'Preparing…' });
+    clearWatchdog();
+    watchdogRef.current = window.setTimeout(() => {
+      setProgress(null);
+      setSubmitting(false);
+      setClientError(
+        'Save is taking too long. Try again with 1–3 smaller photos, or refresh and retry.',
+      );
+    }, 90_000);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -359,6 +375,7 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
         formAction(formData);
       });
     } catch (error) {
+      clearWatchdog();
       setProgress(null);
       setSubmitting(false);
       setClientError(error instanceof Error ? error.message : 'Upload failed.');
@@ -373,14 +390,24 @@ export function ProductForm({ action, categories, product, submitLabel }: Produc
 
     if (!wasPendingRef.current) return;
     wasPendingRef.current = false;
+    clearWatchdog();
 
     if (state.error) {
       setProgress(null);
-    } else {
-      setProgress({ pct: 100, label: 'Done' });
+      setSubmitting(false);
+      return;
     }
+
+    if (state.success) {
+      setProgress({ pct: 100, label: 'Done — opening products…' });
+      window.location.assign(state.redirectTo || '/manage/products');
+      return;
+    }
+
     setSubmitting(false);
-  }, [pending, state.error]);
+  }, [pending, state.error, state.success, state.redirectTo]);
+
+  useEffect(() => () => clearWatchdog(), []);
 
   const error = clientError || state.error;
   const busy = submitting || pending;
