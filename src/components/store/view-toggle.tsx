@@ -58,9 +58,8 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
               type="button"
               onClick={() => onChange(selected ? 'ALL' : view)}
               className={cn(
-                'audience-tab-pulse relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
+                'relative z-10 flex h-10 items-center justify-center gap-1 rounded-full px-1.5 transition',
                 selected ? styles.active : styles.idle,
-                delay,
               )}
             >
               <span className={cn('audience-mark-pulse text-[11px] leading-none', delay)} aria-hidden>
