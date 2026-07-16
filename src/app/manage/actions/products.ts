@@ -8,7 +8,7 @@ import { CATALOG_CACHE_TAG } from "@/lib/catalog";
 import { requireAdmin } from "@/lib/auth";
 import {
   catalogLineFromCategory,
-  MAX_FEATURED_PER_LINE,
+  maxFeaturedForLine,
   type CatalogLine,
 } from "@/lib/products";
 import { prisma } from "@/lib/prisma";
@@ -237,12 +237,12 @@ export async function createProduct(
 
   try {
     const wantsFeatured = data.featured;
-    if (wantsFeatured) {
-      const line = await resolveCatalogLine(data.categoryId);
+    const line = wantsFeatured ? await resolveCatalogLine(data.categoryId) : null;
+    if (wantsFeatured && line) {
       const featuredCount = await countFeaturedInLine(line);
-      if (featuredCount >= MAX_FEATURED_PER_LINE) {
+      if (featuredCount >= maxFeaturedForLine(line)) {
         return {
-          error: `Already ${MAX_FEATURED_PER_LINE} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
+          error: `Already ${maxFeaturedForLine(line)} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
         };
       }
     }
@@ -252,7 +252,7 @@ export async function createProduct(
     const product = await prisma.product.create({
       data: {
         ...data,
-        homepageOrder: wantsFeatured ? MAX_FEATURED_PER_LINE + 1 : null,
+        homepageOrder: wantsFeatured && line ? maxFeaturedForLine(line) + 1 : null,
       },
     });
 
@@ -284,12 +284,12 @@ export async function updateProduct(
 
   try {
     const wantsFeatured = data.featured;
-    if (wantsFeatured) {
-      const line = await resolveCatalogLine(data.categoryId);
+    const line = wantsFeatured ? await resolveCatalogLine(data.categoryId) : null;
+    if (wantsFeatured && line) {
       const featuredCount = await countFeaturedInLine(line, id);
-      if (featuredCount >= MAX_FEATURED_PER_LINE) {
+      if (featuredCount >= maxFeaturedForLine(line)) {
         return {
-          error: `Already ${MAX_FEATURED_PER_LINE} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
+          error: `Already ${maxFeaturedForLine(line)} featured ${lineLabel(line)} products. Remove one from that line's slots, then try again.`,
         };
       }
     }
@@ -300,7 +300,7 @@ export async function updateProduct(
       where: { id },
       data: {
         ...data,
-        homepageOrder: wantsFeatured ? MAX_FEATURED_PER_LINE + 1 : null,
+        homepageOrder: wantsFeatured && line ? maxFeaturedForLine(line) + 1 : null,
       },
     });
 
@@ -344,8 +344,6 @@ export async function deleteProduct(formData: FormData) {
   redirect("/manage/products");
 }
 
-const MAX_FEATURED = MAX_FEATURED_PER_LINE;
-
 /**
  * Force featured products into unique slots 1…N per audience line (WOMEN / KIDS / MEN).
  */
@@ -354,9 +352,10 @@ export async function repairFeaturedSlots() {
   let touched = false;
 
   for (const line of lines) {
+    const maxSlots = maxFeaturedForLine(line);
     const featured = await featuredProductsInLine(line);
-    const keep = featured.slice(0, MAX_FEATURED);
-    const drop = featured.slice(MAX_FEATURED);
+    const keep = featured.slice(0, maxSlots);
+    const drop = featured.slice(maxSlots);
     const alreadyClean =
       drop.length === 0 &&
       keep.every((product, index) => product.homepageOrder === index + 1);
@@ -423,7 +422,7 @@ export async function toggleFeaturedProduct(formData: FormData) {
   }
 
   const featuredCount = await countFeaturedInLine(line);
-  if (featuredCount >= MAX_FEATURED) {
+  if (featuredCount >= maxFeaturedForLine(line)) {
     redirect(`/manage/products?featuredError=limit&line=${line}`);
   }
 

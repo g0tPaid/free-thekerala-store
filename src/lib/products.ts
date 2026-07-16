@@ -163,8 +163,19 @@ function toNumber(value: DecimalLike) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-/** Max featured homepage slots per audience line (WOMEN / KIDS / MEN each). */
-export const MAX_FEATURED_PER_LINE = 3;
+/** Max featured homepage slots per audience line. */
+export const MAX_FEATURED_BY_LINE: Record<CatalogLine, number> = {
+  WOMEN: 6,
+  KIDS: 3,
+  MEN: 3,
+};
+
+export function maxFeaturedForLine(line: CatalogLine) {
+  return MAX_FEATURED_BY_LINE[line];
+}
+
+/** Highest slot count across lines (for UI that needs a single ceiling). */
+export const MAX_FEATURED_PER_LINE = Math.max(...Object.values(MAX_FEATURED_BY_LINE));
 
 export function catalogLineFromCategory(category?: PrismaCategoryShape | null): CatalogLine {
   return toCatalogLine(category);
@@ -369,7 +380,7 @@ const LINE_ORDER: Record<CatalogLine, number> = {
 
 /**
  * Homepage grid order.
- * On ALL: interleave featured slots across lines — Women #1, Kids #1, Men #1, then #2s, then #3s.
+ * On ALL: interleave featured slots across lines — Women #1, Kids #1, Men #1, then #2s, etc.
  * On a line tab: featured by slot within that line only.
  */
 export function compareStoreProductsForGrid(

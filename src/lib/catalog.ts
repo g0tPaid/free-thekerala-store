@@ -3,7 +3,7 @@ import { ProductStatus } from '@/generated/prisma';
 import {
   compareStoreProductsForGrid,
   mapPrismaProductToStore,
-  MAX_FEATURED_PER_LINE,
+  maxFeaturedForLine,
   type CatalogLine,
   type StoreProduct,
 } from '@/lib/products';
@@ -121,7 +121,7 @@ async function loadActiveProducts(): Promise<StoreProduct[]> {
         if (aOrder !== bOrder) return aOrder - bOrder;
         return a.name.localeCompare(b.name);
       })
-      .slice(0, MAX_FEATURED_PER_LINE);
+      .slice(0, maxFeaturedForLine(line));
 
     featuredSorted.forEach((product, index) => {
       rankById.set(product.id, index + 1);

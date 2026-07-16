@@ -8,7 +8,8 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import {
   catalogLineFromCategory,
-  MAX_FEATURED_PER_LINE,
+  MAX_FEATURED_BY_LINE,
+  maxFeaturedForLine,
   type CatalogLine,
 } from "@/lib/products";
 import { prisma } from "@/lib/prisma";
@@ -101,9 +102,9 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
           <p className="text-sm uppercase tracking-[0.25em] text-black/45">Catalog</p>
           <h1 className="mt-2 text-3xl font-semibold">Products</h1>
           <p className="mt-2 text-sm text-black/55">
-            Featured slots: WOMEN {featuredByLine.WOMEN.length}/{MAX_FEATURED_PER_LINE} · KIDS{" "}
-            {featuredByLine.KIDS.length}/{MAX_FEATURED_PER_LINE} · MEN {featuredByLine.MEN.length}/
-            {MAX_FEATURED_PER_LINE} — each audience tab has its own 3 spots
+            Featured slots: WOMEN {featuredByLine.WOMEN.length}/{MAX_FEATURED_BY_LINE.WOMEN} · KIDS{" "}
+            {featuredByLine.KIDS.length}/{MAX_FEATURED_BY_LINE.KIDS} · MEN {featuredByLine.MEN.length}/
+            {MAX_FEATURED_BY_LINE.MEN} — Women has 6 spots; Kids &amp; Men have 3 each
           </p>
         </div>
         <Link href="/manage/products/new" className="bg-black px-4 py-2 text-sm font-medium text-white">
@@ -113,7 +114,8 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
 
       {featuredError === "limit" ? (
         <div className="border border-red-600 bg-red-50 px-4 py-3 text-sm text-red-700">
-          All {MAX_FEATURED_PER_LINE} {limitedLine ? LINE_LABEL[limitedLine] : ""} featured slots are
+          All {limitedLine ? maxFeaturedForLine(limitedLine) : ""}{" "}
+          {limitedLine ? LINE_LABEL[limitedLine] : ""} featured slots are
           full. Remove one from that line&apos;s slots above, then feature another.
         </div>
       ) : null}
@@ -121,7 +123,8 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
       {(["WOMEN", "KIDS", "MEN"] as CatalogLine[]).map((line) => {
         const lineFeatured = featuredByLine[line];
         const featuredCount = lineFeatured.length;
-        const featuredSlots = Array.from({ length: MAX_FEATURED_PER_LINE }, (_, index) => {
+        const lineMax = maxFeaturedForLine(line);
+        const featuredSlots = Array.from({ length: lineMax }, (_, index) => {
           return lineFeatured[index] ?? null;
         });
 
@@ -131,12 +134,12 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
               <div>
                 <h2 className="text-lg font-semibold">{LINE_LABEL[line]} featured slots</h2>
                 <p className="mt-1 text-sm text-black/55">
-                  Fixed {MAX_FEATURED_PER_LINE} spots for the {LINE_LABEL[line]} tab. Remove frees a
+                  Fixed {lineMax} spots for the {LINE_LABEL[line]} tab. Remove frees a
                   slot. Numbers stay 1–{featuredCount || 0} in order.
                 </p>
               </div>
               <p className="text-sm font-medium text-black/70">
-                {featuredCount} filled · {MAX_FEATURED_PER_LINE - featuredCount} open
+                {featuredCount} filled · {lineMax - featuredCount} open
               </p>
             </div>
 
