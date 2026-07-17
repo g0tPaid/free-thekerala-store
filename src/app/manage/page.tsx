@@ -6,6 +6,21 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const LAUNCH_DATE = new Date("2026-07-13T00:00:00+08:00");
+
+function launchInfo() {
+  const days = Math.max(
+    1,
+    Math.floor((Date.now() - LAUNCH_DATE.getTime()) / 86_400_000) + 1,
+  );
+  const formatted = LAUNCH_DATE.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return { formatted, days };
+}
+
 function money(value: number, currency = "INR") {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -57,6 +72,10 @@ export default async function AdminDashboardPage() {
           <h1 className="mt-2 text-3xl font-semibold text-blue-700">Dashboard</h1>
           <p className="mt-2 text-sm text-blue-500">
             Live traffic, orders, and store health for superadmin.
+          </p>
+          <p className="mt-1 text-sm text-blue-500">
+            Launched <span className="font-semibold text-blue-700">{launchInfo().formatted}</span>
+            {" · "}day <span className="font-semibold text-blue-700">{launchInfo().days}</span> online
           </p>
         </div>
         <Link
