@@ -43,9 +43,29 @@ export function HomeCatalog({
   );
 
   const filtered = useMemo(() => {
-    return filterProducts(catalog, category, view)
+    const sorted = filterProducts(catalog, category, view)
       .slice()
       .sort((a, b) => compareStoreProductsForGrid(a, b, view));
+
+    // On the main ALL feed, alternate Women / Kids after the first 6 featured
+    if (view !== 'ALL' || category !== 'ALL') return sorted;
+
+    const head = sorted.slice(0, MID_TICKER_AFTER);
+    const tail = sorted.slice(MID_TICKER_AFTER);
+    const women = tail.filter((product) => product.line === 'WOMEN');
+    const kids = tail.filter((product) => product.line === 'KIDS');
+    const others = tail.filter(
+      (product) => product.line !== 'WOMEN' && product.line !== 'KIDS',
+    );
+
+    const alternated: typeof tail = [];
+    const longest = Math.max(women.length, kids.length);
+    for (let i = 0; i < longest; i += 1) {
+      if (women[i]) alternated.push(women[i]);
+      if (kids[i]) alternated.push(kids[i]);
+    }
+
+    return [...head, ...alternated, ...others];
   }, [catalog, category, view]);
 
   const products = filtered.slice(0, visibleCount);
