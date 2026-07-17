@@ -9,7 +9,8 @@ import { ProductGrid } from '@/components/store/product-grid';
 import { SearchOverlay } from '@/components/store/search-overlay';
 import { ViewToggle } from '@/components/store/view-toggle';
 import type { HomeBanner } from '@/lib/banners';
-import { BRAND, whatsappUrl } from '@/lib/brand';
+import { useWhatsappUrl } from '@/components/providers';
+import { BRAND } from '@/lib/brand';
 import {
   categoriesForView,
   compareStoreProductsForGrid,
@@ -33,6 +34,7 @@ export function HomeCatalog({
   banners,
   bannersEnabled = true,
 }: HomeCatalogProps) {
+  const waUrl = useWhatsappUrl();
   const [category, setCategory] = useState<ProductCategory>('ALL');
   const [view, setView] = useState<ProductView>('ALL');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -122,7 +124,7 @@ export function HomeCatalog({
       ) : null}
       <section className="border-t border-hairline px-4 pb-12 pt-8">
         <a
-          href={whatsappUrl(`Hi, ഓടേ ന്റെ സാനം — ${BRAND.domain}`)}
+          href={waUrl(`Hi, ഓടേ ന്റെ സാനം — ${BRAND.domain}`)}
           target="_blank"
           rel="noopener noreferrer"
           className="mb-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-[#25D366] bg-[#25D366] px-5 py-4 text-center text-white"

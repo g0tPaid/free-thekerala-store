@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Noto_Serif_Malayalam, Pacifico, Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from '@/components/providers';
+import { prisma } from '@/lib/prisma';
 import './globals.css';
 
 const sans = Plus_Jakarta_Sans({
@@ -62,15 +63,30 @@ export const viewport: Viewport = {
   themeColor: '#4f8f6e',
 };
 
-export default function RootLayout({
+async function storefrontWhatsappNumber() {
+  try {
+    const settings = await prisma.siteSettings.findUnique({
+      where: { id: 'default' },
+      select: { whatsappNumber: true },
+    });
+    const digits = (settings?.whatsappNumber ?? '').replace(/\D/g, '');
+    return digits.length >= 8 ? digits : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const whatsappNumber = await storefrontWhatsappNumber();
+
   return (
     <html lang="en">
       <body className={`${sans.variable} ${editorial.variable} ${script.variable} ${malayalam.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers whatsappNumber={whatsappNumber}>{children}</Providers>
       </body>
     </html>
   );

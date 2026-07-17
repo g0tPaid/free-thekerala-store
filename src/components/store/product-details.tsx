@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Header } from '@/components/store/header';
 import { ProductCard } from '@/components/store/product-card';
-import { BRAND, whatsappUrl } from '@/lib/brand';
+import { useWhatsappUrl } from '@/components/providers';
+import { BRAND } from '@/lib/brand';
 import { categoryLabel, type StoreProduct } from '@/lib/products';
 import { useCart } from '@/lib/store';
 import { cn, formatPrice } from '@/lib/utils';
@@ -15,6 +16,7 @@ type ProductDetailsProps = {
 };
 
 export function ProductDetails({ product, related }: ProductDetailsProps) {
+  const waUrl = useWhatsappUrl();
   const addItem = useCart((state) => state.addItem);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? '');
   const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? '');
@@ -151,7 +153,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
           BUY NOW · {formatPrice(unitPrice)}
         </button>
         <a
-          href={whatsappUrl(`Hi, I have a question about ${product.name} on ${BRAND.domain}`)}
+          href={waUrl(`Hi, I have a question about ${product.name} on ${BRAND.domain}`)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-3 flex w-full items-center justify-center border border-[#25D366] bg-[#25D366] px-5 py-4 text-center text-[11px] font-semibold tracking-[0.14em] text-white"

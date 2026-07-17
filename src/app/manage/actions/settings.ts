@@ -88,6 +88,25 @@ export async function saveBannerSlot(index: 1 | 2 | 3, imageUrl: string) {
   revalidatePath("/manage/settings");
 }
 
+export async function updateWhatsappNumber(formData: FormData) {
+  await requireAdmin();
+  const digits = value(formData, "whatsappNumber").replace(/\D/g, "");
+
+  await prisma.siteSettings.upsert({
+    where: { id: "default" },
+    update: { whatsappNumber: digits || null },
+    create: {
+      id: "default",
+      siteName: "The Kerala Store",
+      currency: "INR",
+      whatsappNumber: digits || null,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/manage/settings");
+}
+
 export async function setBannersEnabled(formData: FormData) {
   await requireAdmin();
   const enabled = formData.get("enabled") === "1";

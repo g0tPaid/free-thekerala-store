@@ -1,14 +1,16 @@
 'use client';
 
-import { BRAND, whatsappUrl } from '@/lib/brand';
+import { useWhatsappUrl } from '@/components/providers';
+import { BRAND } from '@/lib/brand';
 
 const MESSAGE =
   'ന്തൊക്കെ ണ്ട് വിശേഷം , സുഖല്ലേ ? .. സൈറ്റിൽ ഒരു വിധം സാനം ഒക്കെ ണ്ട് .. സൈസ് തെറ്റി ഓർഡർ ആകരുത് ട്ടോ .. ശ്രെദ്ദികൊണ്ടു .. ഒക്കെ താങ്ക്യൂ .. ചോദ്യങ്ങളൊക്കെ  അജുനോട് വട്സാപ്പില് ചോയ്ക്കലോ  .. അടീൽ "  "ഒടെ  ന്റെ സാനം "ബട്ടൺ കണ്ടീലെ.. അയ്‌മേ ക്ലിക്ക് ..';
 
 export function OffersBanner() {
+  const waUrl = useWhatsappUrl();
   return (
     <a
-      href={whatsappUrl(`Hi AJ, doubt ഉണ്ട് — ${BRAND.domain}`)}
+      href={waUrl(`Hi AJ, doubt ഉണ്ട് — ${BRAND.domain}`)}
       target="_blank"
       rel="noopener noreferrer"
       className="block overflow-hidden border-y-2 border-[#b42318] bg-[#fff3cd] py-1.5 text-[#b42318]"

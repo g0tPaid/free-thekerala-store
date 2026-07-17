@@ -1,6 +1,7 @@
 'use client';
 
-import { BRAND, whatsappUrl } from '@/lib/brand';
+import { useWhatsappUrl } from '@/components/providers';
+import { BRAND } from '@/lib/brand';
 
 const LABEL = 'ഓടേ ന്റെ സാനം';
 const ORDER_MESSAGE = `Hi, ${LABEL} — ${BRAND.domain}`;
@@ -19,9 +20,10 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export function WhatsAppOrderButton() {
+  const waUrl = useWhatsappUrl();
   return (
     <a
-      href={whatsappUrl(ORDER_MESSAGE)}
+      href={waUrl(ORDER_MESSAGE)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={LABEL}

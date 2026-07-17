@@ -1,4 +1,5 @@
-import { updateSettings } from "@/app/manage/actions/settings";
+import { updateSettings, updateWhatsappNumber } from "@/app/manage/actions/settings";
+import { BRAND } from "@/lib/brand";
 import { BannerSlotField } from "@/components/admin/banner-slot-field";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -59,6 +60,33 @@ export default async function AdminSettingsPage() {
         <p className="text-sm uppercase tracking-[0.25em] text-black/45">Store</p>
         <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
       </div>
+
+      <section className="border border-[#25D366]/40 bg-white p-5">
+        <h2 className="text-lg font-semibold">WhatsApp number</h2>
+        <p className="mt-1 text-sm text-black/55">
+          Used by every WhatsApp button on the shop (floating button, product questions, checkout,
+          ticker). Country code + number, no spaces — e.g.{" "}
+          <span className="font-medium text-black">917356699803</span>.
+        </p>
+        <form action={updateWhatsappNumber} className="mt-4 flex flex-wrap items-center gap-3">
+          <input
+            name="whatsappNumber"
+            defaultValue={settings.whatsappNumber || BRAND.whatsapp}
+            inputMode="tel"
+            className="w-64 border border-black/15 px-3 py-2.5"
+            placeholder="917356699803"
+          />
+          <button
+            type="submit"
+            className="bg-[#25D366] px-5 py-2.5 text-xs font-semibold tracking-[0.14em] text-white"
+          >
+            SAVE NUMBER
+          </button>
+        </form>
+        <p className="mt-3 text-xs text-black/45">
+          Currently live: +{settings.whatsappNumber?.replace(/\D/g, "") || BRAND.whatsapp}
+        </p>
+      </section>
 
       <form action={updateSettings} className="grid gap-5 border border-black/10 bg-white p-5 md:grid-cols-2">
         <div>

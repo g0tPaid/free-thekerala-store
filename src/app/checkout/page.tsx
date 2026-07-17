@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { Header } from '@/components/store/header';
 import { placeOrder, type PaymentMethod } from '@/app/actions/checkout';
-import { BRAND, whatsappUrl } from '@/lib/brand';
+import { useWhatsappUrl } from '@/components/providers';
+import { BRAND } from '@/lib/brand';
 import { useCart } from '@/lib/store';
 import { cn, formatPrice } from '@/lib/utils';
 
 export default function CheckoutPage() {
+  const waUrl = useWhatsappUrl();
   const items = useCart((state) => state.items);
   const subtotal = useCart((state) => state.subtotal());
   const clear = useCart((state) => state.clear);
@@ -118,7 +120,7 @@ export default function CheckoutPage() {
           )}
 
           <a
-            href={whatsappUrl(
+            href={waUrl(
               isUpi
                 ? `Hi, I placed order ${placed.orderNumber}. Paying via UPI (${formatPrice(placed.total)}). Sending screenshot.`
                 : `Hi, I placed order ${placed.orderNumber} with Cash on Delivery.`,
