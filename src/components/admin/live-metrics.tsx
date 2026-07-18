@@ -29,6 +29,9 @@ type MetricsPayload = {
 
 const SOCIAL_BOOST = 75;
 const SOCIAL_MODE_KEY = 'kerala-store-metrics-social-x75';
+/** Floors used in social mode when real values are zero. */
+const SOCIAL_ORDERS_TODAY_FLOOR = 31;
+const SOCIAL_REVENUE_TODAY_FLOOR = 29484;
 
 function money(value: number, currency = 'INR') {
   return new Intl.NumberFormat('en-IN', {
@@ -40,6 +43,18 @@ function money(value: number, currency = 'INR') {
 
 function boost(value: number, enabled: boolean) {
   if (!enabled) return value;
+  return Math.round(value * SOCIAL_BOOST);
+}
+
+function socialOrdersToday(value: number, enabled: boolean) {
+  if (!enabled) return value;
+  if (value <= 0) return SOCIAL_ORDERS_TODAY_FLOOR;
+  return Math.round(value * SOCIAL_BOOST);
+}
+
+function socialRevenueToday(value: number, enabled: boolean) {
+  if (!enabled) return value;
+  if (value <= 0) return SOCIAL_REVENUE_TODAY_FLOOR;
   return Math.round(value * SOCIAL_BOOST);
 }
 
@@ -149,6 +164,14 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
 
   const updated = new Date(metrics.updatedAt).toLocaleTimeString();
   const n = (value: number) => boost(value, socialMode);
+  const ordersToday = socialOrdersToday(metrics.store.ordersToday, socialMode);
+  const revenueToday = socialRevenueToday(metrics.store.revenueToday, socialMode);
+  const revenueTotal = socialMode
+    ? Math.max(
+        n(metrics.store.revenueTotal),
+        metrics.store.revenueToday <= 0 ? SOCIAL_REVENUE_TODAY_FLOOR : n(metrics.store.revenueToday),
+      )
+    : metrics.store.revenueTotal;
 
   return (
     <div className="space-y-6">
@@ -182,9 +205,10 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
 
       {socialMode ? (
         <div className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Social mode is on — every metric below is multiplied by{' '}
-          <span className="font-semibold">{SOCIAL_BOOST}</span> for screenshots. Turn it off for real
-          numbers. Does not change actual store data.
+          Social mode is on — most metrics are ×{SOCIAL_BOOST}. If orders today is 0 it shows{' '}
+          {SOCIAL_ORDERS_TODAY_FLOOR}; if revenue today is 0 it shows{' '}
+          {money(SOCIAL_REVENUE_TODAY_FLOOR, currency)}. Active products stay real. Does not change
+          actual store data.
         </div>
       ) : null}
 
@@ -218,19 +242,19 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Orders today"
-          value={n(metrics.store.ordersToday).toLocaleString()}
+          value={ordersToday.toLocaleString()}
           hint={`${n(metrics.store.pendingOrders)} pending`}
           href="/manage/orders"
         />
         <StatCard
           label="Revenue today"
-          value={money(n(metrics.store.revenueToday), currency)}
-          hint={`Total ${money(n(metrics.store.revenueTotal), currency)}`}
+          value={money(revenueToday, currency)}
+          hint={`Total ${money(revenueTotal, currency)}`}
           href="/manage/orders"
         />
         <StatCard
           label="Active products"
-          value={n(metrics.store.productsActive).toLocaleString()}
+          value={metrics.store.productsActive.toLocaleString()}
           href="/manage/products"
         />
         <StatCard
