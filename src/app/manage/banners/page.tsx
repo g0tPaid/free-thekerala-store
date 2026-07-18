@@ -66,7 +66,7 @@ export default async function AdminBannersPage() {
             <p className="mt-1 text-sm text-black/55">
               {bannersEnabled
                 ? "ON — top image banners show. Malayalam ticker stays under the filters."
-                : "OFF — image banners hidden. Malayalam ticker moves under the first 6 products."}
+                : "OFF — image banners hidden. Malayalam ticker moves under the first 3 products."}
             </p>
           </div>
           <div className="flex gap-2">

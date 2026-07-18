@@ -21,7 +21,10 @@ import {
 } from '@/lib/products';
 
 const PAGE_SIZE = 12;
-const MID_TICKER_AFTER = 6;
+/** Malayalam ticker inserts after this many products when image banners are off. */
+const MID_TICKER_AFTER = 3;
+/** On ALL feed, keep this many lead products before Women/Kids alternation. */
+const ALL_FEED_HEAD = 6;
 
 type HomeCatalogProps = {
   products: StoreProduct[];
@@ -49,11 +52,11 @@ export function HomeCatalog({
       .slice()
       .sort((a, b) => compareStoreProductsForGrid(a, b, view));
 
-    // On the main ALL feed, alternate Women / Kids after the first 6 featured
+    // On the main ALL feed, alternate Women / Kids after the featured head
     if (view !== 'ALL' || category !== 'ALL') return sorted;
 
-    const head = sorted.slice(0, MID_TICKER_AFTER);
-    const tail = sorted.slice(MID_TICKER_AFTER);
+    const head = sorted.slice(0, ALL_FEED_HEAD);
+    const tail = sorted.slice(ALL_FEED_HEAD);
     const women = tail.filter((product) => product.line === 'WOMEN');
     const kids = tail.filter((product) => product.line === 'KIDS');
     const others = tail.filter(
