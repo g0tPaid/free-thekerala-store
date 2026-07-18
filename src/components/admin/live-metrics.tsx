@@ -29,9 +29,10 @@ type MetricsPayload = {
 
 const SOCIAL_BOOST = 75;
 const SOCIAL_MODE_KEY = 'kerala-store-metrics-social-x75';
-/** Floors used in social mode when real values are zero. */
+/** Social-mode floors / fixed display values. */
 const SOCIAL_ORDERS_TODAY_FLOOR = 31;
-const SOCIAL_REVENUE_TODAY_FLOOR = 29484;
+const SOCIAL_REVENUE_TOTAL_FLOOR = 29484;
+const SOCIAL_CUSTOMERS = 739;
 
 function money(value: number, currency = 'INR') {
   return new Intl.NumberFormat('en-IN', {
@@ -46,16 +47,26 @@ function boost(value: number, enabled: boolean) {
   return Math.round(value * SOCIAL_BOOST);
 }
 
+/** Orders today: (real or 31) × 75 when social mode is on. */
 function socialOrdersToday(value: number, enabled: boolean) {
   if (!enabled) return value;
-  if (value <= 0) return SOCIAL_ORDERS_TODAY_FLOOR;
-  return Math.round(value * SOCIAL_BOOST);
+  const base = value > 0 ? value : SOCIAL_ORDERS_TODAY_FLOOR;
+  return Math.round(base * SOCIAL_BOOST);
 }
 
-function socialRevenueToday(value: number, enabled: boolean) {
+/**
+ * Revenue today card shows the all-time total (boosted).
+ * If total is 0, use 29484 × 75.
+ */
+function socialRevenueTodayFromTotal(revenueTotal: number, enabled: boolean) {
+  if (!enabled) return null;
+  const base = revenueTotal > 0 ? revenueTotal : SOCIAL_REVENUE_TOTAL_FLOOR;
+  return Math.round(base * SOCIAL_BOOST);
+}
+
+function socialCustomers(value: number, enabled: boolean) {
   if (!enabled) return value;
-  if (value <= 0) return SOCIAL_REVENUE_TODAY_FLOOR;
-  return Math.round(value * SOCIAL_BOOST);
+  return SOCIAL_CUSTOMERS;
 }
 
 function StatCard({
@@ -165,13 +176,12 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
   const updated = new Date(metrics.updatedAt).toLocaleTimeString();
   const n = (value: number) => boost(value, socialMode);
   const ordersToday = socialOrdersToday(metrics.store.ordersToday, socialMode);
-  const revenueToday = socialRevenueToday(metrics.store.revenueToday, socialMode);
-  const revenueTotal = socialMode
-    ? Math.max(
-        n(metrics.store.revenueTotal),
-        metrics.store.revenueToday <= 0 ? SOCIAL_REVENUE_TODAY_FLOOR : n(metrics.store.revenueToday),
-      )
-    : metrics.store.revenueTotal;
+  const revenueTodaySocial = socialRevenueTodayFromTotal(metrics.store.revenueTotal, socialMode);
+  const revenueToday =
+    revenueTodaySocial != null ? revenueTodaySocial : metrics.store.revenueToday;
+  const revenueTotal =
+    revenueTodaySocial != null ? revenueTodaySocial : metrics.store.revenueTotal;
+  const customers = socialCustomers(metrics.store.customers, socialMode);
 
   return (
     <div className="space-y-6">
@@ -205,10 +215,10 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
 
       {socialMode ? (
         <div className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Social mode is on — most metrics are ×{SOCIAL_BOOST}. If orders today is 0 it shows{' '}
-          {SOCIAL_ORDERS_TODAY_FLOOR}; if revenue today is 0 it shows{' '}
-          {money(SOCIAL_REVENUE_TODAY_FLOOR, currency)}. Active products stay real. Does not change
-          actual store data.
+          Social mode is on — most metrics ×{SOCIAL_BOOST}. Orders today uses at least{' '}
+          {SOCIAL_ORDERS_TODAY_FLOOR}×{SOCIAL_BOOST}. Revenue today shows total revenue (floor{' '}
+          {money(SOCIAL_REVENUE_TOTAL_FLOOR, currency)}×{SOCIAL_BOOST} if empty). Customers show{' '}
+          {SOCIAL_CUSTOMERS}. Active products stay real. Does not change actual store data.
         </div>
       ) : null}
 
@@ -259,7 +269,7 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
         />
         <StatCard
           label="Customers"
-          value={n(metrics.store.customers).toLocaleString()}
+          value={customers.toLocaleString()}
           href="/manage/customers"
         />
       </section>
