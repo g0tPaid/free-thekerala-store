@@ -27,12 +27,20 @@ type MetricsPayload = {
   };
 };
 
+const SOCIAL_BOOST = 75;
+const SOCIAL_MODE_KEY = 'kerala-store-metrics-social-x75';
+
 function money(value: number, currency = 'INR') {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function boost(value: number, enabled: boolean) {
+  if (!enabled) return value;
+  return Math.round(value * SOCIAL_BOOST);
 }
 
 function StatCard({
@@ -81,6 +89,27 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
   const [metrics, setMetrics] = useState<MetricsPayload | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [socialMode, setSocialMode] = useState(false);
+
+  useEffect(() => {
+    try {
+      setSocialMode(window.localStorage.getItem(SOCIAL_MODE_KEY) === '1');
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function toggleSocialMode() {
+    setSocialMode((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(SOCIAL_MODE_KEY, next ? '1' : '0');
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   const load = useCallback(async () => {
     try {
@@ -119,6 +148,7 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
   }
 
   const updated = new Date(metrics.updatedAt).toLocaleTimeString();
+  const n = (value: number) => boost(value, socialMode);
 
   return (
     <div className="space-y-6">
@@ -127,63 +157,85 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">Live metrics</p>
           <p className="mt-1 text-sm text-blue-500">Auto-refreshes every 30s · last update {updated}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="border border-blue-300 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-blue-700 hover:border-blue-500"
-        >
-          REFRESH
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleSocialMode}
+            aria-pressed={socialMode}
+            className={
+              socialMode
+                ? 'border border-amber-500 bg-amber-50 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-amber-800'
+                : 'border border-blue-300 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-blue-700 hover:border-blue-500'
+            }
+          >
+            {socialMode ? `SOCIAL ×${SOCIAL_BOOST} ON` : `SOCIAL ×${SOCIAL_BOOST} OFF`}
+          </button>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="border border-blue-300 px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-blue-700 hover:border-blue-500"
+          >
+            REFRESH
+          </button>
+        </div>
       </div>
+
+      {socialMode ? (
+        <div className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Social mode is on — every metric below is multiplied by{' '}
+          <span className="font-semibold">{SOCIAL_BOOST}</span> for screenshots. Turn it off for real
+          numbers. Does not change actual store data.
+        </div>
+      ) : null}
 
       {error ? <p className="text-sm text-amber-700">{error}</p> : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Active now"
-          value={metrics.live.activeNow.toLocaleString()}
+          value={n(metrics.live.activeNow).toLocaleString()}
           hint="Page hits · last 5 min"
           live
         />
         <StatCard
           label="Views today"
-          value={metrics.live.viewsToday.toLocaleString()}
+          value={n(metrics.live.viewsToday).toLocaleString()}
           hint="Page views since midnight"
           live
         />
         <StatCard
           label="Views · last hour"
-          value={metrics.live.viewsLastHour.toLocaleString()}
+          value={n(metrics.live.viewsLastHour).toLocaleString()}
           live
         />
         <StatCard
           label="Views · 24h"
-          value={metrics.traffic.views24h.toLocaleString()}
-          hint={`${metrics.traffic.viewsTotal.toLocaleString()} all-time`}
+          value={n(metrics.traffic.views24h).toLocaleString()}
+          hint={`${n(metrics.traffic.viewsTotal).toLocaleString()} all-time`}
         />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Orders today"
-          value={metrics.store.ordersToday.toLocaleString()}
-          hint={`${metrics.store.pendingOrders} pending`}
+          value={n(metrics.store.ordersToday).toLocaleString()}
+          hint={`${n(metrics.store.pendingOrders)} pending`}
           href="/manage/orders"
         />
         <StatCard
           label="Revenue today"
-          value={money(metrics.store.revenueToday, currency)}
-          hint={`Total ${money(metrics.store.revenueTotal, currency)}`}
+          value={money(n(metrics.store.revenueToday), currency)}
+          hint={`Total ${money(n(metrics.store.revenueTotal), currency)}`}
           href="/manage/orders"
         />
         <StatCard
           label="Active products"
-          value={metrics.store.productsActive.toLocaleString()}
+          value={n(metrics.store.productsActive).toLocaleString()}
           href="/manage/products"
         />
         <StatCard
           label="Customers"
-          value={metrics.store.customers.toLocaleString()}
+          value={n(metrics.store.customers).toLocaleString()}
           href="/manage/customers"
         />
       </section>
@@ -200,7 +252,9 @@ export function LiveMetrics({ currency = 'INR' }: { currency?: string }) {
                 className="flex items-center justify-between gap-4 px-5 py-3 text-sm text-blue-800"
               >
                 <span className="truncate font-medium">{page.path}</span>
-                <span className="shrink-0 tabular-nums text-blue-500">{page.views} views</span>
+                <span className="shrink-0 tabular-nums text-blue-500">
+                  {n(page.views)} views
+                </span>
               </div>
             ))}
           </div>
