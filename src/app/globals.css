@@ -243,3 +243,231 @@ a {
 .brand-sub-in {
   animation: brand-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
 }
+
+/* Animated Kerala badge — elephants, palms, birds */
+.kerala-logo [class*='kerala-logo-'] {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.kerala-logo-fronds,
+.kerala-logo-fronds-alt,
+.kerala-logo-trunk,
+.kerala-logo-trunk-sm {
+  transform-origin: center top;
+}
+
+.kerala-logo-bird,
+.kerala-logo-bird-alt,
+.kerala-logo-bird-flap,
+.kerala-logo-water {
+  transform-origin: center center;
+}
+
+@keyframes kerala-walk-bob {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1.5px, -1.5px);
+  }
+  50% {
+    transform: translate(3px, 0);
+  }
+  75% {
+    transform: translate(1.5px, -1.2px);
+  }
+}
+
+@keyframes kerala-leg-a {
+  0%,
+  100% {
+    transform: rotate(12deg);
+  }
+  50% {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes kerala-leg-b {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes kerala-trunk {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes kerala-sway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes kerala-fronds {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes kerala-bird-fly {
+  0% {
+    transform: translate(0, 0) scaleX(1);
+  }
+  25% {
+    transform: translate(6px, -4px) scaleX(1.05);
+  }
+  50% {
+    transform: translate(12px, 0) scaleX(0.95);
+  }
+  75% {
+    transform: translate(6px, 3px) scaleX(1.05);
+  }
+  100% {
+    transform: translate(0, 0) scaleX(1);
+  }
+}
+
+@keyframes kerala-bird-flap {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes kerala-water {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
+
+.kerala-logo-walk-bob {
+  animation: kerala-walk-bob 1.1s ease-in-out infinite;
+}
+
+.kerala-logo-walk-bob-alt {
+  animation: kerala-walk-bob 1.1s ease-in-out infinite 0.15s;
+}
+
+.kerala-logo-leg-a {
+  animation: kerala-leg-a 1.1s ease-in-out infinite;
+}
+
+.kerala-logo-leg-b {
+  animation: kerala-leg-b 1.1s ease-in-out infinite;
+}
+
+.kerala-logo-trunk,
+.kerala-logo-trunk-sm {
+  animation: kerala-trunk 2.2s ease-in-out infinite;
+}
+
+.kerala-logo-palm {
+  animation: kerala-sway 3.4s ease-in-out infinite;
+}
+
+.kerala-logo-palm-alt {
+  animation: kerala-sway 3.8s ease-in-out infinite reverse;
+}
+
+.kerala-logo-fronds {
+  animation: kerala-fronds 2.8s ease-in-out infinite;
+}
+
+.kerala-logo-fronds-alt {
+  animation: kerala-fronds 3.2s ease-in-out infinite reverse;
+}
+
+.kerala-logo-sway {
+  animation: kerala-sway 4s ease-in-out infinite;
+}
+
+.kerala-logo-sway-slow {
+  animation: kerala-sway 5s ease-in-out infinite reverse;
+}
+
+.kerala-logo-bird {
+  animation: kerala-bird-fly 5.5s ease-in-out infinite;
+}
+
+.kerala-logo-bird-alt {
+  animation: kerala-bird-fly 6.2s ease-in-out infinite reverse;
+}
+
+.kerala-logo-bird-flap {
+  animation: kerala-bird-flap 0.55s ease-in-out infinite;
+}
+
+.kerala-logo-water {
+  animation: kerala-water 2.8s ease-in-out infinite;
+}
+
+@keyframes kerala-herd-pace {
+  0%,
+  100% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+.kerala-logo-elephant {
+  animation: kerala-herd-pace 5.5s ease-in-out infinite;
+}
+
+.kerala-logo-calf {
+  animation: kerala-herd-pace 5.5s ease-in-out infinite 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerala-logo-walk-bob,
+  .kerala-logo-walk-bob-alt,
+  .kerala-logo-leg-a,
+  .kerala-logo-leg-b,
+  .kerala-logo-trunk,
+  .kerala-logo-trunk-sm,
+  .kerala-logo-palm,
+  .kerala-logo-palm-alt,
+  .kerala-logo-fronds,
+  .kerala-logo-fronds-alt,
+  .kerala-logo-sway,
+  .kerala-logo-sway-slow,
+  .kerala-logo-bird,
+  .kerala-logo-bird-alt,
+  .kerala-logo-bird-flap,
+  .kerala-logo-water,
+  .kerala-logo-elephant,
+  .kerala-logo-calf {
+    animation: none !important;
+  }
+}

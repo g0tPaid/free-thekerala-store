@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
+import { AnimatedKeralaLogo } from '@/components/store/animated-kerala-logo';
 import { cn } from '@/lib/utils';
 
 type BrandLogoProps = {
@@ -31,14 +31,10 @@ export function BrandLogo({
   const content = (
     <span className={cn('inline-flex flex-col items-center gap-2.5', className)}>
       <span className={cn('relative inline-flex', size === 'lg' && 'brand-mark-in')}>
-        <Image
-          src="/logo-kerala-badge.png"
-          alt="The Kerala Store"
-          width={387}
-          height={401}
-          priority
-          className="h-auto w-auto drop-shadow-[0_8px_28px_rgba(29,77,62,0.16)]"
-          style={{ width: s.px, height: 'auto' }}
+        <AnimatedKeralaLogo
+          width={s.px}
+          title="The Kerala Store"
+          className="h-auto w-auto"
         />
       </span>
       {as === 'h1' ? <TitleTag className="sr-only">The Kerala Store</TitleTag> : null}
