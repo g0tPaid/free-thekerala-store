@@ -18,7 +18,7 @@ export type CheckoutItemInput = {
 export type PaymentMethod = 'UPI' | 'COD';
 
 export type PlaceOrderInput = {
-  email: string;
+  email?: string;
   phone: string;
   customerName: string;
   line1: string;
@@ -49,12 +49,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       return { ok: false, error: 'Your cart is empty.' };
     }
 
-    const email = input.email.trim().toLowerCase();
+    const email = input.email?.trim().toLowerCase() || null;
     const phone = input.phone.trim();
     const customerName = input.customerName.trim();
     const paymentMethod = input.paymentMethod === 'COD' ? 'COD' : 'UPI';
 
-    if (!email || !phone || !customerName || !input.line1.trim() || !input.city.trim() || !input.country.trim()) {
+    if (!phone || !customerName || !input.line1.trim() || !input.city.trim() || !input.country.trim()) {
       return { ok: false, error: 'Please fill in all required fields.' };
     }
 
