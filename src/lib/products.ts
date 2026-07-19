@@ -241,7 +241,9 @@ export function mapPrismaProductToStore(product: PrismaProductShape): StoreProdu
     })(),
     material: product.material || '',
     sizes: Array.isArray(product.sizes) ? (product.sizes as string[]) : [],
-    colors: product.colors?.length ? product.colors : ['Natural', 'Ivory'],
+    colors: Array.isArray(product.colors)
+      ? (product.colors as string[]).map((c) => String(c).trim()).filter(Boolean)
+      : [],
     tags: product.tags ?? [],
     images: gallery.length ? gallery : [fallback],
     featured: Boolean(product.featured),

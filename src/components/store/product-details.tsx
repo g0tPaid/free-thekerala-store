@@ -19,6 +19,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
   const waUrl = useWhatsappUrl();
   const addItem = useCart((state) => state.addItem);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? '');
+  const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? '');
   const [quantity, setQuantity] = useState(1);
 
   const gallery = useMemo(
@@ -27,6 +28,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
   );
   const unitPrice = product.salePrice ?? product.price;
   const requiresSize = product.sizes.length > 0;
+  const requiresColor = product.colors.length > 0;
 
   return (
     <main className="min-h-screen">
@@ -88,10 +90,38 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         </section>
       ) : null}
 
+      {requiresColor ? (
+        <section
+          className={cn(
+            'border-hairline px-4 py-5',
+            requiresSize ? 'border-b' : 'border-y',
+          )}
+        >
+          <p className="mb-3 text-[11px] font-semibold tracking-[0.22em]">COLOR</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {product.colors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setSelectedColor(color)}
+                className={cn(
+                  'border px-2 py-3 text-xs font-medium',
+                  selectedColor === color
+                    ? 'border-[#4f8f6e] bg-[#4f8f6e] text-[#faf8f3]'
+                    : 'border-hairline',
+                )}
+              >
+                {color}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section
         className={cn(
           'px-4 py-5',
-          requiresSize ? '' : 'border-t border-hairline',
+          requiresSize || requiresColor ? '' : 'border-t border-hairline',
         )}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -108,7 +138,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         </div>
         <button
           type="button"
-          disabled={requiresSize && !selectedSize}
+          disabled={(requiresSize && !selectedSize) || (requiresColor && !selectedColor)}
           onClick={() =>
             addItem({
               productId: product.id,
@@ -117,6 +147,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
               price: unitPrice,
               imageUrl: product.images[0],
               size: selectedSize || undefined,
+              color: selectedColor || undefined,
               quantity,
             })
           }
