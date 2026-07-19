@@ -19,7 +19,7 @@ export default function CheckoutPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [placed, setPlaced] = useState<{
     orderNumber: string;
     paymentMethod: PaymentMethod;
@@ -188,10 +188,9 @@ export default function CheckoutPage() {
         <fieldset className="space-y-3">
           <legend className="mb-3 text-[11px] font-bold tracking-[0.22em]">CONTACT</legend>
           <input
-            required
             name="email"
             type="email"
-            placeholder="Email"
+            placeholder="Email (optional)"
             className="w-full rounded-xl border border-hairline px-4 py-3 text-sm outline-none focus:border-[#4f8f6e]"
           />
           <input
@@ -256,8 +255,8 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-2 gap-3">
             {(
               [
-                { id: 'UPI' as const, title: 'UPI', hint: 'Pay online now' },
                 { id: 'COD' as const, title: 'COD', hint: 'Cash on delivery' },
+                { id: 'UPI' as const, title: 'UPI', hint: 'Pay online now' },
               ] as const
             ).map((option) => (
               <button
@@ -271,11 +270,19 @@ export default function CheckoutPage() {
                     : 'border-hairline bg-white text-[#2f5a48]',
                 )}
               >
-                <span className="block text-[12px] font-bold tracking-[0.14em]">{option.title}</span>
+                <span
+                  className={cn(
+                    'block text-[12px] tracking-[0.14em]',
+                    option.id === 'COD' ? 'font-extrabold' : 'font-bold',
+                  )}
+                >
+                  {option.title}
+                </span>
                 <span
                   className={cn(
                     'mt-1 block text-[11px]',
                     paymentMethod === option.id ? 'text-white/85' : 'text-muted',
+                    option.id === 'COD' && 'font-semibold',
                   )}
                 >
                   {option.hint}

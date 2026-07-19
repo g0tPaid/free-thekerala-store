@@ -71,7 +71,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <div className="border border-black/10 bg-white p-5">
           <p className="text-sm text-black/50">Customer</p>
           <p className="mt-3 font-medium">{order.customerName}</p>
-          <p className="mt-1 text-sm text-black/60">{order.email}</p>
+          <p className="mt-1 text-sm text-black/60">{order.email || 'No email'}</p>
           <p className="mt-1 text-sm text-black/60">{order.phone}</p>
         </div>
         <div className="border border-black/10 bg-white p-5">

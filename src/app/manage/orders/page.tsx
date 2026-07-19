@@ -100,7 +100,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
                   </td>
                   <td className="px-4 py-4">
                     <div>{order.customerName}</div>
-                    <div className="mt-1 text-xs text-black/50">{order.email}</div>
+                    <div className="mt-1 text-xs text-black/50">{order.email || order.phone}</div>
                   </td>
                   <td className="px-4 py-4">{order.status}</td>
                   <td className="px-4 py-4">{order.items.length}</td>
