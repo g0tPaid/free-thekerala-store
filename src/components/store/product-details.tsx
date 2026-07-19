@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Header } from '@/components/store/header';
 import { ProductCard } from '@/components/store/product-card';
+import { ProductPrice } from '@/components/store/product-price';
 import { useWhatsappUrl } from '@/components/providers';
 import { BRAND } from '@/lib/brand';
 import { categoryLabel, type StoreProduct } from '@/lib/products';
@@ -59,9 +60,12 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         <h1 className="font-serif text-5xl leading-[0.92] tracking-[-0.06em] text-[#3d6b58]">
           {product.name}
         </h1>
-        <p className="mt-4 text-2xl font-semibold tracking-tight text-[#2f7a55]">
-          {formatPrice(unitPrice)}
-        </p>
+        <ProductPrice
+          className="mt-4"
+          price={product.price}
+          salePrice={product.salePrice}
+          size="lg"
+        />
         {product.description ? (
           <p className="mt-5 text-sm leading-6 text-muted">{product.description}</p>
         ) : null}

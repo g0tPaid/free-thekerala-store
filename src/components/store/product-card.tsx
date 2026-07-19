@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import type { StoreProduct } from '@/lib/products';
+import { ProductPrice } from '@/components/store/product-price';
 import { useWishlist } from '@/lib/store';
-import { cn, formatPrice } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 type ProductCardProps = {
   product: StoreProduct & { image?: string };
@@ -40,9 +41,12 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
       <Link href={`/product/${product.slug}`} className="mt-1.5 block">
         <h3 className="truncate text-[11px] font-medium leading-tight uppercase tracking-[0.12em]">{product.name}</h3>
-        <p className="mt-0.5 text-center text-[11px] font-medium leading-tight text-emerald-600">
-          {formatPrice(product.salePrice ?? product.price)}
-        </p>
+        <ProductPrice
+          className="mt-0.5"
+          price={product.price}
+          salePrice={product.salePrice}
+          size="sm"
+        />
       </Link>
     </article>
   );

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { useSearchUi } from '@/lib/search-ui';
 import type { StoreProduct } from '@/lib/products';
-import { formatPrice } from '@/lib/utils';
+import { ProductPrice } from '@/components/store/product-price';
 
 type SearchOverlayProps = {
   products: StoreProduct[];
@@ -83,7 +83,11 @@ export function SearchOverlay({ products }: SearchOverlayProps) {
                     </span>
                     <span className="mt-1 block text-xs text-muted">{product.category}</span>
                   </span>
-                  <span className="text-xs">{formatPrice(product.salePrice ?? product.price)}</span>
+                  <ProductPrice
+                    price={product.price}
+                    salePrice={product.salePrice}
+                    size="sm"
+                  />
                 </Link>
               ))}
             </div>
