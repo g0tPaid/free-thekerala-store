@@ -233,11 +233,13 @@ export function mapPrismaProductToStore(product: PrismaProductShape): StoreProdu
     qualityPrices: parseQualityPrices(product.qualityPrices),
     line: toCatalogLine(product.category),
     category: toCategory(product.category),
-    description:
-      product.longDescription ||
-      product.shortDescription ||
-      'Curated from Kerala — craft, spice, and everyday beauty for your home.',
-    material: product.material || 'Natural materials',
+    description: (() => {
+      const raw = (product.longDescription || product.shortDescription || '').trim();
+      if (!raw) return '';
+      if (/^curated from kerala/i.test(raw)) return '';
+      return raw;
+    })(),
+    material: product.material || '',
     sizes: Array.isArray(product.sizes) ? (product.sizes as string[]) : [],
     colors: product.colors?.length ? product.colors : ['Natural', 'Ivory'],
     tags: product.tags ?? [],

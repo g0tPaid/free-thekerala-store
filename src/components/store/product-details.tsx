@@ -59,9 +59,12 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         <h1 className="font-serif text-5xl leading-[0.92] tracking-[-0.06em] text-[#3d6b58]">
           {product.name}
         </h1>
-        <p className="mt-4 text-sm font-medium text-[#3d6b58]">{formatPrice(unitPrice)}</p>
-        <p className="mt-5 text-sm leading-6 text-muted">{product.description}</p>
-        <p className="mt-4 text-xs uppercase tracking-[0.16em] text-muted">Material: {product.material}</p>
+        <p className="mt-4 text-2xl font-semibold tracking-tight text-[#2f7a55]">
+          {formatPrice(unitPrice)}
+        </p>
+        {product.description ? (
+          <p className="mt-5 text-sm leading-6 text-muted">{product.description}</p>
+        ) : null}
       </section>
 
       {requiresSize ? (
