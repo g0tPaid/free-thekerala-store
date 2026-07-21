@@ -12,11 +12,11 @@ type BrandLogoProps = {
   as?: 'div' | 'h1';
 };
 
-/** Banner logo is wide (~3:2). Widths tuned for header vs hero. */
+/** Banner logo is wide. Widths tuned for header vs hero. */
 const SIZE = {
-  sm: { w: 148, h: 99, ml: 'text-[9px] tracking-[0.14em]' },
-  md: { w: 280, h: 187, ml: 'text-[11px] tracking-[0.16em]' },
-  lg: { w: 360, h: 240, ml: 'text-[13px] tracking-[0.18em]' },
+  sm: { w: 168, h: 72, ml: 'text-[9px] tracking-[0.14em]' },
+  md: { w: 320, h: 136, ml: 'text-[11px] tracking-[0.16em]' },
+  lg: { w: 420, h: 178, ml: 'text-[13px] tracking-[0.18em]' },
 } as const;
 
 export function BrandLogo({
@@ -38,8 +38,8 @@ export function BrandLogo({
           width={s.w}
           height={s.h}
           priority
-          className="h-auto w-auto object-contain drop-shadow-[0_4px_14px_rgba(29,77,62,0.14)]"
-          style={{ width: s.w, height: 'auto' }}
+          className="h-auto max-h-14 w-auto object-contain sm:max-h-[3.75rem]"
+          style={{ width: 'auto', maxWidth: s.w, height: 'auto' }}
         />
       </span>
       {as === 'h1' ? <TitleTag className="sr-only">The Kerala Store</TitleTag> : null}
