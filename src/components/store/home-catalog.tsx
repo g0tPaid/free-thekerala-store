@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { CategoryNav } from '@/components/store/category-nav';
+import { BrandWatermark } from '@/components/store/brand-watermark';
 import { Header } from '@/components/store/header';
 import { HeroBanners } from '@/components/store/hero-banners';
 import { OffersBanner } from '@/components/store/offers-banner';
@@ -92,7 +93,9 @@ export function HomeCatalog({
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="relative min-h-screen overflow-hidden">
+      <BrandWatermark />
+      <div className="relative z-[2]">
       <Header />
       {bannersEnabled ? <HeroBanners banners={banners} /> : null}
       <ViewToggle value={view} onChange={changeView} />
@@ -143,6 +146,7 @@ export function HomeCatalog({
           <span className="font-semibold text-[#3d6b58]">free shipping</span>.
         </p>
       </section>
+      </div>
     </main>
   );
 }

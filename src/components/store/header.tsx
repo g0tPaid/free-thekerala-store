@@ -24,7 +24,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center border-b border-hairline bg-[#faf8f3]/92 px-4 py-2.5 backdrop-blur-md">
+    <header className="sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center border-b border-hairline bg-[#faf8f3]/92 px-4 py-2 backdrop-blur-md">
       <button
         type="button"
         onClick={openCart}

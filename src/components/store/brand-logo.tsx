@@ -12,10 +12,11 @@ type BrandLogoProps = {
   as?: 'div' | 'h1';
 };
 
+/** Banner logo is wide (~3:2). Widths tuned for header vs hero. */
 const SIZE = {
-  sm: { px: 48, ml: 'text-[9px] tracking-[0.14em]' },
-  md: { px: 150, ml: 'text-[11px] tracking-[0.16em]' },
-  lg: { px: 260, ml: 'text-[13px] tracking-[0.18em]' },
+  sm: { w: 148, h: 99, ml: 'text-[9px] tracking-[0.14em]' },
+  md: { w: 280, h: 187, ml: 'text-[11px] tracking-[0.16em]' },
+  lg: { w: 360, h: 240, ml: 'text-[13px] tracking-[0.18em]' },
 } as const;
 
 export function BrandLogo({
@@ -29,16 +30,16 @@ export function BrandLogo({
   const TitleTag = as;
 
   const content = (
-    <span className={cn('inline-flex flex-col items-center gap-2.5', className)}>
+    <span className={cn('inline-flex flex-col items-center gap-2', className)}>
       <span className={cn('relative inline-flex', size === 'lg' && 'brand-mark-in')}>
         <Image
-          src="/logo-kerala-badge.png"
+          src="/logo-kerala-banner.png"
           alt="The Kerala Store"
-          width={387}
-          height={401}
+          width={s.w}
+          height={s.h}
           priority
-          className="h-auto w-auto drop-shadow-[0_8px_28px_rgba(29,77,62,0.16)]"
-          style={{ width: s.px, height: 'auto' }}
+          className="h-auto w-auto object-contain drop-shadow-[0_6px_20px_rgba(29,77,62,0.12)]"
+          style={{ width: s.w, height: 'auto' }}
         />
       </span>
       {as === 'h1' ? <TitleTag className="sr-only">The Kerala Store</TitleTag> : null}
