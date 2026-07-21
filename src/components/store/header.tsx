@@ -34,7 +34,7 @@ export function Header() {
         CART ({mounted ? count : 0})
       </button>
       <BrandLogo size="sm" showMalayalam={false} className="py-0" />
-      <div className="flex flex-col items-end justify-center gap-0.5">
+      <div className="flex items-center justify-end gap-1 sm:gap-1.5">
         {showSearch ? (
           <button
             type="button"
@@ -45,7 +45,7 @@ export function Header() {
             <Search className="size-[14px] sm:size-[15px]" strokeWidth={2.25} />
           </button>
         ) : null}
-        <Link href="/checkout" className={`truncate leading-none ${navLabelClass}`}>
+        <Link href="/checkout" className={`truncate ${navLabelClass}`}>
           CHECKOUT
         </Link>
       </div>
