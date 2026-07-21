@@ -9,7 +9,7 @@ import { useSearchUi } from '@/lib/search-ui';
 import { useCart } from '@/lib/store';
 
 const navLabelClass =
-  'text-[14px] font-bold tracking-[0.14em] text-[#2f5a48]';
+  'text-[10px] font-bold tracking-[0.12em] text-[#2f5a48] sm:text-[11px]';
 
 export function Header() {
   const pathname = usePathname() ?? '';
@@ -24,28 +24,28 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center border-b border-hairline bg-[#faf8f3]/92 px-4 py-2 backdrop-blur-md">
+    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b border-hairline bg-[#faf8f3]/92 px-2.5 py-1.5 backdrop-blur-md sm:gap-2 sm:px-4 sm:py-2">
       <button
         type="button"
         onClick={openCart}
-        className={`text-left ${navLabelClass}`}
+        className={`min-w-0 justify-self-start truncate text-left ${navLabelClass}`}
         aria-label="Open cart"
       >
         CART ({mounted ? count : 0})
       </button>
-      <BrandLogo size="sm" showMalayalam={false} className="py-0.5" />
-      <div className="flex items-center justify-end gap-2">
+      <BrandLogo size="sm" showMalayalam={false} className="py-0" />
+      <div className="flex items-center justify-end gap-1 sm:gap-1.5">
         {showSearch ? (
           <button
             type="button"
             onClick={openSearch}
-            className="grid size-9 place-items-center text-[#2f5a48]"
+            className="grid size-7 place-items-center text-[#2f5a48] sm:size-8"
             aria-label="Search"
           >
-            <Search className="size-[18px]" strokeWidth={2.25} />
+            <Search className="size-[14px] sm:size-[15px]" strokeWidth={2.25} />
           </button>
         ) : null}
-        <Link href="/checkout" className={navLabelClass}>
+        <Link href="/checkout" className={`truncate ${navLabelClass}`}>
           CHECKOUT
         </Link>
       </div>
