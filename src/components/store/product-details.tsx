@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/store/header';
+import { BrandWatermark } from '@/components/store/brand-watermark';
 import { ProductCard } from '@/components/store/product-card';
 import { ProductPrice } from '@/components/store/product-price';
 import { useWhatsappUrl } from '@/components/providers';
@@ -58,7 +59,9 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
   }, [lightboxIndex, gallery.length]);
 
   return (
-    <main className="min-h-screen">
+    <main className="relative min-h-screen overflow-hidden">
+      <BrandWatermark />
+      <div className="relative z-[2]">
       <Header />
       <div className="space-y-2 p-1">
         <div className="grid grid-cols-2 gap-1">
@@ -316,6 +319,7 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
           ))}
         </div>
       </section>
+      </div>
     </main>
   );
 }
