@@ -40,7 +40,7 @@ export function HomeCatalog({
 }: HomeCatalogProps) {
   const waUrl = useWhatsappUrl();
   const [category, setCategory] = useState<ProductCategory>('ALL');
-  const [view, setView] = useState<ProductView>('ALL');
+  const [view, setView] = useState<ProductView>('WOMEN');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const availableCategories = useMemo(
