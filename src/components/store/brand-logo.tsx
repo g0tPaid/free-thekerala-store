@@ -38,7 +38,7 @@ export function BrandLogo({
           width={s.w}
           height={s.h}
           priority
-          className="h-auto w-auto object-contain drop-shadow-[0_6px_20px_rgba(29,77,62,0.12)]"
+          className="h-auto w-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.28)]"
           style={{ width: s.w, height: 'auto' }}
         />
       </span>
