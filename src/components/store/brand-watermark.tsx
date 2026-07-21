@@ -8,7 +8,7 @@ export function BrandWatermark({ className = '' }: { className?: string }) {
       aria-hidden
       className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden select-none ${className}`}
     >
-      <div className="absolute left-1/2 top-1/2 flex w-[220%] -translate-x-1/2 -translate-y-1/2 -rotate-45 flex-col gap-10 opacity-[0.035]">
+      <div className="absolute left-1/2 top-1/2 flex w-[220%] -translate-x-1/2 -translate-y-1/2 -rotate-45 flex-col gap-10 opacity-[0.055]">
         {rows.map((row) => (
           <div
             key={row}
@@ -18,7 +18,7 @@ export function BrandWatermark({ className = '' }: { className?: string }) {
             {cols.map((col) => (
               <span
                 key={`${row}-${col}`}
-                className="px-6 font-serif text-[20px] font-medium tracking-[-0.02em] text-[#3d6b58]"
+                className="px-6 font-serif text-[21px] font-semibold tracking-[-0.02em] text-[#2f5a48]"
               >
                 thekerala.store
               </span>
