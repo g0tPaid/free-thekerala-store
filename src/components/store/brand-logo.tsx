@@ -14,9 +14,9 @@ type BrandLogoProps = {
 
 /** Banner logo is wide. Widths tuned for header vs hero. */
 const SIZE = {
-  sm: { w: 168, h: 72, ml: 'text-[9px] tracking-[0.14em]' },
-  md: { w: 320, h: 136, ml: 'text-[11px] tracking-[0.16em]' },
-  lg: { w: 420, h: 178, ml: 'text-[13px] tracking-[0.18em]' },
+  sm: { w: 196, h: 84, ml: 'text-[9px] tracking-[0.14em]' },
+  md: { w: 360, h: 154, ml: 'text-[11px] tracking-[0.16em]' },
+  lg: { w: 480, h: 206, ml: 'text-[13px] tracking-[0.18em]' },
 } as const;
 
 export function BrandLogo({
