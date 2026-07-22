@@ -9,9 +9,11 @@ import { cn } from '@/lib/utils';
 
 type ProductCardProps = {
   product: StoreProduct & { image?: string };
+  /** Show diagonal COD ribbon. Default true for most products. */
+  showCodBanner?: boolean;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, showCodBanner = true }: ProductCardProps) {
   const toggle = useWishlist((state) => state.toggle);
   const liked = useWishlist((state) => state.has(product.id));
   const image = product.image || product.images[0];
@@ -29,10 +31,22 @@ export function ProductCard({ product }: ProductCardProps) {
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         </Link>
+
+        {showCodBanner ? (
+          <div
+            className="pointer-events-none absolute -left-8 top-3 z-[1] w-[7.5rem] -rotate-45 bg-[#4f8f6e] py-[3px] text-center shadow-sm"
+            aria-hidden
+          >
+            <span className="block text-[7px] font-bold uppercase leading-none tracking-[0.12em] text-[#faf8f3]">
+              COD available
+            </span>
+          </div>
+        ) : null}
+
         <button
           type="button"
           onClick={() => toggle(product.id)}
-          className="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-white/85 text-black backdrop-blur"
+          className="absolute right-1.5 top-1.5 z-[2] grid size-7 place-items-center rounded-full bg-white/85 text-black backdrop-blur"
           aria-label={liked ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
           aria-pressed={liked}
         >
