@@ -40,6 +40,13 @@ export function ProductCard({ product, showCodBanner = true }: ProductCardProps)
         >
           <Heart className={cn('size-3.5', liked && 'fill-black')} strokeWidth={1.7} />
         </button>
+        {typeof product.salePrice === 'number' &&
+        product.salePrice > 0 &&
+        product.salePrice < product.price ? (
+          <span className="pointer-events-none absolute -left-7 top-4 z-[1] w-28 -rotate-45 bg-red-600 py-1 text-center text-[8px] font-bold uppercase tracking-[0.14em] text-white shadow">
+            Sale
+          </span>
+        ) : null}
       </div>
       <Link href={`/product/${product.slug}`} className="mt-1.5 block">
         <h3 className="truncate text-[11px] font-medium leading-tight uppercase tracking-[0.12em]">
