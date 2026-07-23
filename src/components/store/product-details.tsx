@@ -126,8 +126,11 @@ export function ProductDetails({ product, related }: ProductDetailsProps) {
         <h1 className="font-serif text-5xl leading-[0.92] tracking-[-0.06em] text-[#3d6b58]">
           {product.name}
         </h1>
+        <p className="mt-4 inline-flex bg-[#4f8f6e] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white">
+          COD available
+        </p>
         <ProductPrice
-          className="mt-4"
+          className="mt-3"
           price={product.price}
           salePrice={product.salePrice}
           size="lg"
