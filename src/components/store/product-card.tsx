@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 type ProductCardProps = {
   product: StoreProduct & { image?: string };
-  /** Show diagonal COD ribbon. Default true for most products. */
+  /** Show COD badge next to price. Default true for most products. */
   showCodBanner?: boolean;
 };
 
@@ -31,18 +31,6 @@ export function ProductCard({ product, showCodBanner = true }: ProductCardProps)
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         </Link>
-
-        {showCodBanner ? (
-          <div
-            className="pointer-events-none absolute -left-8 top-3 z-[1] w-[7.5rem] -rotate-45 bg-[#4f8f6e] py-[3px] text-center shadow-sm"
-            aria-hidden
-          >
-            <span className="block text-[7px] font-bold uppercase leading-none tracking-[0.12em] text-[#faf8f3]">
-              COD available
-            </span>
-          </div>
-        ) : null}
-
         <button
           type="button"
           onClick={() => toggle(product.id)}
@@ -54,13 +42,22 @@ export function ProductCard({ product, showCodBanner = true }: ProductCardProps)
         </button>
       </div>
       <Link href={`/product/${product.slug}`} className="mt-1.5 block">
-        <h3 className="truncate text-[11px] font-medium leading-tight uppercase tracking-[0.12em]">{product.name}</h3>
-        <ProductPrice
-          className="mt-0.5"
-          price={product.price}
-          salePrice={product.salePrice}
-          size="sm"
-        />
+        <h3 className="truncate text-[11px] font-medium leading-tight uppercase tracking-[0.12em]">
+          {product.name}
+        </h3>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          {showCodBanner ? (
+            <span className="shrink-0 rounded-[3px] border border-[#4f8f6e]/35 bg-[#4f8f6e]/12 px-1 py-[2px] text-[7px] font-bold uppercase leading-none tracking-[0.06em] text-[#3d6b58]">
+              COD
+            </span>
+          ) : null}
+          <ProductPrice
+            className="min-w-0"
+            price={product.price}
+            salePrice={product.salePrice}
+            size="sm"
+          />
+        </div>
       </Link>
     </article>
   );
