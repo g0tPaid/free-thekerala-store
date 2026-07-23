@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CategoryNav } from '@/components/store/category-nav';
 import { BrandWatermark } from '@/components/store/brand-watermark';
 import { Header } from '@/components/store/header';
 import { HeroBanners } from '@/components/store/hero-banners';
@@ -13,10 +12,8 @@ import type { HomeBanner } from '@/lib/banners';
 import { useWhatsappUrl } from '@/components/providers';
 import { BRAND } from '@/lib/brand';
 import {
-  categoriesForView,
   compareStoreProductsForGrid,
   filterProducts,
-  type ProductCategory,
   type ProductView,
   type StoreProduct,
 } from '@/lib/products';
@@ -39,22 +36,16 @@ export function HomeCatalog({
   bannersEnabled = true,
 }: HomeCatalogProps) {
   const waUrl = useWhatsappUrl();
-  const [category, setCategory] = useState<ProductCategory>('ALL');
   const [view, setView] = useState<ProductView>('WOMEN');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const availableCategories = useMemo(
-    () => categoriesForView(catalog, view),
-    [catalog, view],
-  );
-
   const filtered = useMemo(() => {
-    const sorted = filterProducts(catalog, category, view)
+    const sorted = filterProducts(catalog, 'ALL', view)
       .slice()
       .sort((a, b) => compareStoreProductsForGrid(a, b, view));
 
     // On the main ALL feed, alternate Women / Kids after the featured head
-    if (view !== 'ALL' || category !== 'ALL') return sorted;
+    if (view !== 'ALL') return sorted;
 
     const head = sorted.slice(0, ALL_FEED_HEAD);
     const tail = sorted.slice(ALL_FEED_HEAD);
@@ -72,7 +63,7 @@ export function HomeCatalog({
     }
 
     return [...head, ...alternated, ...others];
-  }, [catalog, category, view]);
+  }, [catalog, view]);
 
   const products = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -81,14 +72,8 @@ export function HomeCatalog({
   const headProducts = midTicker ? products.slice(0, MID_TICKER_AFTER) : products;
   const tailProducts = midTicker ? products.slice(MID_TICKER_AFTER) : [];
 
-  function changeCategory(nextCategory: ProductCategory) {
-    setCategory(nextCategory);
-    setVisibleCount(PAGE_SIZE);
-  }
-
   function changeView(nextView: ProductView) {
     setView(nextView);
-    setCategory('ALL');
     setVisibleCount(PAGE_SIZE);
   }
 
@@ -99,7 +84,6 @@ export function HomeCatalog({
       <Header />
       {bannersEnabled ? <HeroBanners banners={banners} /> : null}
       <ViewToggle value={view} onChange={changeView} />
-      <CategoryNav categories={availableCategories} value={category} onChange={changeCategory} />
       {bannersEnabled ? <OffersBanner /> : null}
       <SearchOverlay products={filterProducts(catalog, 'ALL', view)} />
       {midTicker ? (
@@ -123,7 +107,7 @@ export function HomeCatalog({
             </button>
           ) : (
             <p className="w-full border border-hairline px-5 py-4 text-center font-ml text-[12px] font-semibold tracking-[0.08em] text-muted">
-              അടീക്ക് ഇനിയും scroll
+              അടീക്ക് തനിയും scroll
             </p>
           )}
         </div>
