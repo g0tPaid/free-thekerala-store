@@ -436,6 +436,37 @@ export async function toggleFeaturedProduct(formData: FormData) {
   redirect("/manage/products");
 }
 
+/** Toggle 10% sale price (salePrice = price * 0.9) for storefront SALE banner. */
+export async function toggleProductSale(formData: FormData) {
+  await requireAdmin();
+
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { id: true, price: true, salePrice: true, slug: true },
+  });
+  if (!product) return;
+
+  const onSale =
+    typeof product.salePrice === "number" &&
+    Number.isFinite(product.salePrice) &&
+    product.salePrice > 0 &&
+    product.salePrice < product.price;
+
+  const nextSale = onSale ? null : Math.round(product.price * 0.9 * 100) / 100;
+
+  await prisma.product.update({
+    where: { id },
+    data: { salePrice: nextSale },
+  });
+
+  bustCatalogCache(product.slug);
+  const returnTo = stringValue(formData, "returnTo");
+  redirect(returnTo.startsWith("/manage/products") ? returnTo : "/manage/products");
+}
+
 export async function moveFeaturedProduct(formData: FormData) {
   await requireAdmin();
 
