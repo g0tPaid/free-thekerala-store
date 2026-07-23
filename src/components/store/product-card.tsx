@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 type ProductCardProps = {
   product: StoreProduct & { image?: string };
-  /** Show COD badge next to price. Default true for most products. */
+  /** Show COD AVAILABLE label. Default true for most products. */
   showCodBanner?: boolean;
 };
 
@@ -45,19 +45,17 @@ export function ProductCard({ product, showCodBanner = true }: ProductCardProps)
         <h3 className="truncate text-[11px] font-medium leading-tight uppercase tracking-[0.12em]">
           {product.name}
         </h3>
-        <div className="mt-0.5 flex items-center gap-1.5">
-          {showCodBanner ? (
-            <span className="shrink-0 rounded-[3px] border border-[#4f8f6e]/35 bg-[#4f8f6e]/12 px-1 py-[2px] text-[7px] font-bold uppercase leading-none tracking-[0.06em] text-[#3d6b58]">
-              COD
-            </span>
-          ) : null}
-          <ProductPrice
-            className="min-w-0"
-            price={product.price}
-            salePrice={product.salePrice}
-            size="sm"
-          />
-        </div>
+        {showCodBanner ? (
+          <p className="mt-1 w-full bg-[#4f8f6e] px-1 py-1 text-center text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-white">
+            COD available
+          </p>
+        ) : null}
+        <ProductPrice
+          className="mt-1"
+          price={product.price}
+          salePrice={product.salePrice}
+          size="sm"
+        />
       </Link>
     </article>
   );
